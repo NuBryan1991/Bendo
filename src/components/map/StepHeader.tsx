@@ -11,19 +11,19 @@ import { Popover } from '../ui/Popover'
 import { useEditor } from './EditorContext'
 
 export function StepHeader({ step }: { step: Step }) {
-  const sortable = useSortable({
+  const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
     id: `step:${step.id}`,
     data: { type: 'step', stepId: step.id, stageId: step.stageId },
   })
-  const style = { transform: CSS.Translate.toString(sortable.transform), transition: sortable.transition }
+  const style = { transform: CSS.Translate.toString(transform), transition: transition }
 
   return (
     <div
-      ref={sortable.setNodeRef}
+      ref={setNodeRef}
       style={style}
-      className={`relative z-[1] border-r border-b border-line bg-surface ${sortable.isDragging ? 'opacity-40' : ''}`}
+      className={`relative z-[1] border-r border-b border-line bg-surface ${isDragging ? 'opacity-40' : ''}`}
     >
-      <StepHeaderContent step={step} handleProps={{ ...sortable.attributes, ...sortable.listeners }} />
+      <StepHeaderContent step={step} handleProps={{ ...attributes, ...listeners }} />
     </div>
   )
 }

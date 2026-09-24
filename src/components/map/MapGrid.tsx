@@ -19,13 +19,15 @@ import { useStudioStore } from '../../store/useStudioStore'
 import { ADD_COLUMN_WIDTH, LANE_LABEL_WIDTH, STEP_WIDTH } from '../../styles/layout'
 import type { Lane, LaneGroup } from '../../types'
 import { Button } from '../ui/Button'
-import { CardView, cardSurface } from './CardItem'
+import { CardView } from './CardItem'
+import { cardSurface } from './cardStyles'
 import { useEditor } from './EditorContext'
 import { EmotionCurve, EmotionScale } from './EmotionCurve'
 import { EmptyCell, GridCell } from './GridCell'
 import { LaneLabel } from './LaneLabel'
 import { StageHeader } from './StageHeader'
 import { EmptyStageHeader, StepHeader, StepHeaderContent } from './StepHeader'
+import { VisibilityLine } from './VisibilityLine'
 
 type DragData =
   | { type: 'step'; stepId: string; stageId: string }
@@ -190,6 +192,7 @@ export function MapGrid() {
 
         {view === 'blueprint' && (
           <>
+            <VisibilityLine style={fullRow} />
             {groupHeader('backstage', 'Backstage')}
             {laneRows(backstage)}
           </>

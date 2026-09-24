@@ -7,38 +7,32 @@ import type { Card } from '../../types'
 import { Button } from '../ui/Button'
 import { Segmented, TextField } from '../ui/Field'
 import { Icon } from '../ui/Icon'
+import { cardSurface } from './cardStyles'
 import { useEditor } from './EditorContext'
-
-/** Clases visuales según la evidencia: punteado = supuesto, sólido = investigación. */
-export function cardSurface(card: Pick<Card, 'basis'>): string {
-  return card.basis === 'investigación'
-    ? 'border-2 border-solid border-research bg-surface'
-    : 'border-2 border-dashed border-assumption bg-assumption-soft'
-}
 
 export function CardItem({ card }: { card: Card }) {
   const { editingCardId } = useEditor()
-  const sortable = useSortable({
+  const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
     id: `card:${card.id}`,
     data: { type: 'card', cardId: card.id, stepId: card.stepId, laneId: card.laneId },
     disabled: editingCardId === card.id,
   })
   const style = {
-    transform: CSS.Translate.toString(sortable.transform),
-    transition: sortable.transition,
+    transform: CSS.Translate.toString(transform),
+    transition: transition,
   }
 
   return (
     <div
-      ref={sortable.setNodeRef}
+      ref={setNodeRef}
       style={style}
       data-card-id={card.id}
-      className={`rounded-card ${cardSurface(card)} ${sortable.isDragging ? 'opacity-40' : ''}`}
+      className={`rounded-card ${cardSurface(card)} ${isDragging ? 'opacity-40' : ''}`}
     >
       {editingCardId === card.id ? (
         <CardEditor card={card} />
       ) : (
-        <CardView card={card} handleProps={{ ...sortable.attributes, ...sortable.listeners }} />
+        <CardView card={card} handleProps={{ ...attributes, ...listeners }} />
       )}
     </div>
   )
