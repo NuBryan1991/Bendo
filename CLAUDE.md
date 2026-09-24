@@ -33,7 +33,7 @@ src/
   data/defaults.ts         etapas, carriles, principios y fábricas de objetos vacíos
   data/sampleProject.ts    proyecto de ejemplo (equipaje dañado)
   lib/                     cálculos puros (solidez, fechas, ids, orden)
-  pages/                   Home, Project, MapEditor
+  pages/                   Home, Project, MapEditor, Compare (comparador)
   components/ui/           piezas genéricas (Button, Popover, Field…)
   components/map/          grilla, pasos, tarjetas, curva emocional, cabecera
   components/panel/        panel lateral del mapa
@@ -47,10 +47,14 @@ src/
 - **ResearchStatement**: methods, interviewCount, dateFrom, dateTo, places, triangulationNotes
 - **Persona**: name, portrait, demographics, quote, contextImages[], description, needs[], motivations[],
   frustrations[], stats[{label,value}], basis, createdAt, expiresAt (12 meses por defecto)
+- **JourneyMap (estado futuro)**: baseMapId (mapa actual del que partió) y opportunityLinks[]
+  `{ id, sourceMapId, cardId, stepId }`: conecta una tarjeta de oportunidad del mapa actual con un paso del
+  mapa futuro. Se guarda en el mapa futuro; una oportunidad → un paso por mapa futuro.
 - **Stage**: id, name (por defecto Antes / Durante / Después). El orden es el del array.
 - **Step**: id, stageId, title, type (`touchpoint|fuera de la organización`), momentOfTruth (boolean),
   emotion (-2..+2), order (dentro de su etapa)
-- **Lane**: id, name, group (`frontstage|backstage`). El orden es el del array.
+- **Lane**: id, name, group (`frontstage|backstage`), role? (`oportunidades`: sus tarjetas se conectan en
+  el comparador; editable desde el menú del carril). El orden es el del array.
   Frontstage por defecto: Storyboard, Acción del cliente, Canal, Evidencia física, Pensamientos y citas,
   Pain points, Oportunidades. Backstage: Comportamiento del personal, Conocimiento, Procesos,
   Sistemas y herramientas, Stakeholders, KPIs.
@@ -67,6 +71,10 @@ Decisiones tomadas (confirmadas por defecto con el usuario):
   Quitar la fuente no revierte la basis automáticamente.
 - Solidez = % de tarjetas con basis investigación **en la vista activa** (Journey = solo frontstage).
 - La vista (journey/blueprint) se recuerda por mapa (`mapViews` en el store, no en los datos del proyecto).
+- "Crear estado futuro" copia el mapa actual completo (tarjetas incluidas, con su basis), con state `futuro`,
+  baseMapId apuntando al original y sin conexiones.
+- Las conexiones que apuntan a tarjetas, pasos o mapas eliminados se limpian solas (`pruneOpportunityLinks`).
+- Guardado versionado: `persist` versión 2 con `migrate` (v1 → v2 agrega baseMapId, opportunityLinks y role).
 
 ## Reglas de UX (no romper)
 - Tarjeta **supuesto**: borde punteado + color de advertencia (`assumption`). **Investigación**: borde sólido (`research`).
@@ -82,8 +90,8 @@ Decisiones tomadas (confirmadas por defecto con el usuario):
 - [x] 1 MVP: modelo, guardado, Inicio, Proyecto (Mapas), editor de grilla, curva emocional, datos de ejemplo
 - [x] 2 Vista Blueprint + línea de visibilidad + carriles editables + panel lateral (ficha, declaración, principios)
 - [x] 3 Pestaña Fuentes: CRUD, vínculo tarjeta↔fuente, tarjetas respaldadas por cada fuente
-- [ ] 4 Personas (CRUD, caducidad)
-- [ ] 5 Comparador actual/futuro
+- [x] 4 Estado futuro + comparador lado a lado + conexión oportunidad → paso futuro
+- [ ] 5 Personas (CRUD, caducidad)
 - [ ] 6 Exportación JSON / PNG / PDF
 - [ ] 7 Pulido de accesibilidad y pruebas
 

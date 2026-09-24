@@ -8,6 +8,8 @@ export interface EditorContextValue {
   /** Tarjeta abierta en modo edición (solo una a la vez). */
   editingCardId: string | null
   setEditingCardId: (id: string | null) => void
+  /** Grilla más estrecha (se usa en el comparador). */
+  compact?: boolean
 }
 
 export const EditorContext = createContext<EditorContextValue | null>(null)

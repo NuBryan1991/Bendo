@@ -54,6 +54,23 @@ export interface JourneyMap {
   lanes: Lane[]
   cards: Card[]
   principles: PrincipleCheck[]
+  /** En un mapa futuro: el mapa actual del que partió (para el comparador). */
+  baseMapId: ID | null
+  /** En un mapa futuro: qué oportunidad de un mapa actual responde cada paso. */
+  opportunityLinks: OpportunityLink[]
+}
+
+/**
+ * Conexión entre una oportunidad (tarjeta de un carril de oportunidades del mapa actual)
+ * y el paso del mapa futuro que la materializa. Se guarda en el mapa futuro.
+ */
+export interface OpportunityLink {
+  id: ID
+  /** Mapa actual donde está la tarjeta de oportunidad. */
+  sourceMapId: ID
+  cardId: ID
+  /** Paso del mapa futuro. */
+  stepId: ID
 }
 
 export interface ResearchStatement {
@@ -120,6 +137,8 @@ export interface Lane {
   id: ID
   name: string
   group: LaneGroup
+  /** Marca el carril cuyas tarjetas son oportunidades (se conectan en el comparador). */
+  role?: 'oportunidades'
 }
 
 export interface Card {

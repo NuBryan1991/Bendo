@@ -13,11 +13,12 @@ export function LaneLabel({ lane, isFirst, isLast }: { lane: Lane; isFirst: bool
   const moveLane = useStudioStore((s) => s.moveLane)
   const setLaneGroup = useStudioStore((s) => s.setLaneGroup)
   const deleteLane = useStudioStore((s) => s.deleteLane)
+  const setLaneOpportunity = useStudioStore((s) => s.setLaneOpportunity)
   const otherGroup = lane.group === 'frontstage' ? 'backstage' : 'frontstage'
 
   return (
     <div className="flex h-full items-start gap-1 px-3 py-2">
-      <span className="min-w-0 flex-1 text-sm font-semibold leading-snug">{lane.name || 'Sin nombre'}</span>
+      <span className="min-w-0 flex-1 text-sm leading-snug font-semibold [overflow-wrap:anywhere]">{lane.name || 'Sin nombre'}</span>
       <Popover
         label={`Editar carril ${lane.name}`}
         trigger={<Icon name="edit" size={14} />}
@@ -48,6 +49,18 @@ export function LaneLabel({ lane, isFirst, isLast }: { lane: Lane; isFirst: bool
                 Pasar a {otherGroup}
               </Button>
             </div>
+            <label className="flex items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 accent-primary"
+                checked={lane.role === 'oportunidades'}
+                onChange={(e) => setLaneOpportunity(project.id, map.id, lane.id, e.target.checked)}
+              />
+              <span>
+                Carril de oportunidades
+                <span className="block text-xs text-ink-muted">Sus tarjetas se pueden conectar con el mapa futuro.</span>
+              </span>
+            </label>
             <div className="border-t border-line pt-3">
               <Button
                 size="sm"

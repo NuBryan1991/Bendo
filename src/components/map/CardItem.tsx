@@ -1,7 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useEffect, useRef, type KeyboardEvent } from 'react'
-import { sourceLabel, sourceTypeLabel } from '../../lib/map'
+import { futureStepsForCard, sourceLabel, sourceTypeLabel } from '../../lib/map'
 import { useStudioStore } from '../../store/useStudioStore'
 import type { Card } from '../../types'
 import { Button } from '../ui/Button'
@@ -48,6 +48,7 @@ export function CardView({
 }) {
   const { setEditingCardId, project } = useEditor()
   const source = card.sourceId ? project.sources.find((s) => s.id === card.sourceId) : undefined
+  const futureSteps = futureStepsForCard(project, card.id)
 
   return (
     <div className="flex flex-col gap-1.5 p-2">
@@ -78,6 +79,17 @@ export function CardView({
         </span>
         <span className="text-ink-muted">· {card.dataType === 'crudo' ? 'Crudo' : 'Interpretado'}</span>
       </div>
+      {futureSteps.length > 0 && (
+        <p
+          className="flex items-start gap-1 pl-5 text-[11px] font-medium text-primary"
+          title={futureSteps.map(({ map, step }) => `${map.title}: ${step.title}`).join('\n')}
+        >
+          <Icon name="arrowRight" size={11} className="mt-px" />
+          <span className="line-clamp-2">
+            Futuro: {futureSteps.map(({ step }) => step.title).join(' · ')}
+          </span>
+        </p>
+      )}
       {source && (
         <p className="flex items-center gap-1 pl-5 text-[11px] text-ink-muted" title={`Fuente: ${sourceLabel(source)}`}>
           <Icon name="link" size={11} />

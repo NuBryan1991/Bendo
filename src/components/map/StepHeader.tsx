@@ -2,6 +2,7 @@ import { useDroppable } from '@dnd-kit/core'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { EMOTION_OPTIONS, STEP_TYPE_OPTIONS } from '../../data/defaults'
+import { opportunitiesForStep } from '../../lib/map'
 import { useStudioStore } from '../../store/useStudioStore'
 import type { Stage, Step } from '../../types'
 import { Button } from '../ui/Button'
@@ -21,6 +22,7 @@ export function StepHeader({ step }: { step: Step }) {
     <div
       ref={setNodeRef}
       style={style}
+      data-step-id={step.id}
       className={`relative z-[1] border-r border-b border-line bg-surface ${isDragging ? 'opacity-40' : ''}`}
     >
       <StepHeaderContent step={step} handleProps={{ ...attributes, ...listeners }} />
@@ -30,7 +32,9 @@ export function StepHeader({ step }: { step: Step }) {
 
 /** Contenido de la cabecera del paso (también se usa en la vista previa al arrastrar). */
 export function StepHeaderContent({ step, handleProps }: { step: Step; handleProps?: Record<string, unknown> }) {
+  const { project, map } = useEditor()
   const critical = step.emotion === -2
+  const answers = opportunitiesForStep(project, map, step.id)
   return (
     <div
       className={`flex h-full flex-col gap-1.5 border-t-4 p-2 ${
@@ -58,6 +62,14 @@ export function StepHeaderContent({ step, handleProps }: { step: Step; handlePro
         {critical && (
           <span className="inline-flex items-center gap-0.5 rounded bg-critical px-1.5 py-0.5 text-[11px] font-semibold text-white">
             <Icon name="alert" size={11} /> Punto crítico
+          </span>
+        )}
+        {answers.length > 0 && (
+          <span
+            className="inline-flex items-center gap-0.5 rounded border border-primary bg-primary-soft px-1.5 py-0.5 text-[11px] font-semibold text-primary"
+            title={answers.map((c) => `• ${c.text}`).join('\n')}
+          >
+            Responde a {answers.length} {answers.length === 1 ? 'oportunidad' : 'oportunidades'}
           </span>
         )}
         {step.type === 'fuera de la organización' && (

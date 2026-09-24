@@ -76,14 +76,20 @@ export function sourceLabel(source: Source): string {
 
 /* ---------- Copias con identificadores nuevos (para duplicar) ---------- */
 
-/** Copia un mapa entero dándole ids nuevos a todo lo interno y manteniendo las relaciones. */
+/**
+ * Copia un mapa entero dándole ids nuevos a todo lo interno y manteniendo las relaciones.
+ * `idMap` guarda las equivalencias viejo → nuevo; al copiar un proyecto se comparte entre
+ * todos sus mapas para que las referencias entre mapas (mapa base, oportunidades) sigan valiendo.
+ */
 export function cloneMap(map: JourneyMap, idMap: Map<string, string> = new Map()): JourneyMap {
   const remap = (id: string) => {
     if (!idMap.has(id)) idMap.set(id, newId())
     return idMap.get(id)!
   }
+  /** Solo cambia la referencia si el objeto apuntado también se copió. */
+  const follow = (id: string) => idMap.get(id) ?? id
   const copy = structuredClone(map)
-  copy.id = newId()
+  copy.id = remap(map.id)
   copy.stages.forEach((s) => (s.id = remap(s.id)))
   copy.lanes.forEach((l) => (l.id = remap(l.id)))
   copy.steps.forEach((s) => {
@@ -91,13 +97,33 @@ export function cloneMap(map: JourneyMap, idMap: Map<string, string> = new Map()
     s.stageId = remap(s.stageId)
   })
   copy.cards.forEach((c) => {
-    c.id = newId()
+    c.id = remap(c.id)
     c.stepId = remap(c.stepId)
     c.laneId = remap(c.laneId)
     // Personas y fuentes solo se remapean si se está copiando el proyecto entero.
-    if (c.sourceId && idMap.has(c.sourceId)) c.sourceId = idMap.get(c.sourceId)
+    if (c.sourceId) c.sourceId = follow(c.sourceId)
   })
-  if (copy.personaId && idMap.has(copy.personaId)) copy.personaId = idMap.get(copy.personaId)!
+  if (copy.personaId) copy.personaId = follow(copy.personaId)
+  return copy
+}
+
+/** Tras copiar mapas, ajusta las referencias entre mapas (mapa base y oportunidades). */
+function relinkMap(copy: JourneyMap, idMap: Map<string, string>) {
+  const follow = (id: string) => idMap.get(id) ?? id
+  if (copy.baseMapId) copy.baseMapId = follow(copy.baseMapId)
+  copy.opportunityLinks = copy.opportunityLinks.map((l) => ({
+    id: newId(),
+    sourceMapId: follow(l.sourceMapId),
+    cardId: follow(l.cardId),
+    stepId: follow(l.stepId),
+  }))
+}
+
+/** Copia un solo mapa dentro del mismo proyecto. */
+export function duplicateMapData(map: JourneyMap): JourneyMap {
+  const idMap = new Map<string, string>()
+  const copy = cloneMap(map, idMap)
+  relinkMap(copy, idMap)
   return copy
 }
 
@@ -116,8 +142,65 @@ export function cloneProject(project: Project, name: string): Project {
     idMap.set(s.id, id)
     s.id = id
   })
-  copy.maps = project.maps.map((m) => cloneMap(m, new Map(idMap)))
+  copy.maps = project.maps.map((m) => cloneMap(m, idMap))
+  copy.maps.forEach((m) => relinkMap(m, idMap))
   return copy
+}
+
+/* ---------- Estado actual ↔ estado futuro ---------- */
+
+export function isOpportunityLane(lane: Lane | undefined): boolean {
+  return lane?.role === 'oportunidades'
+}
+
+/** Tarjetas de los carriles de oportunidades, en el orden del recorrido. */
+export function opportunityCards(map: JourneyMap): { card: Card; step: Step; lane: Lane }[] {
+  const lanes = map.lanes.filter(isOpportunityLane)
+  return orderedSteps(map).flatMap((step) =>
+    lanes.flatMap((lane) => cardsInCell(map, step.id, lane.id).map((card) => ({ card, step, lane }))),
+  )
+}
+
+/** Mapa futuro sugerido para comparar con un mapa actual (el primero creado a partir de él). */
+export function futureMapFor(project: Project, actualMapId: string): JourneyMap | undefined {
+  return (
+    project.maps.find((m) => m.state === 'futuro' && m.baseMapId === actualMapId) ??
+    project.maps.find((m) => m.opportunityLinks.some((l) => l.sourceMapId === actualMapId))
+  )
+}
+
+/** Pasos futuros (en cualquier mapa) conectados con una tarjeta de oportunidad. */
+export function futureStepsForCard(project: Project, cardId: string): { map: JourneyMap; step: Step }[] {
+  return project.maps.flatMap((map) =>
+    map.opportunityLinks
+      .filter((l) => l.cardId === cardId)
+      .flatMap((l) => {
+        const step = map.steps.find((s) => s.id === l.stepId)
+        return step ? [{ map, step }] : []
+      }),
+  )
+}
+
+/** Oportunidades (de cualquier mapa actual) a las que responde un paso de un mapa futuro. */
+export function opportunitiesForStep(project: Project, map: JourneyMap, stepId: string): Card[] {
+  return map.opportunityLinks
+    .filter((l) => l.stepId === stepId)
+    .flatMap((l) => {
+      const card = project.maps.find((m) => m.id === l.sourceMapId)?.cards.find((c) => c.id === l.cardId)
+      return card ? [card] : []
+    })
+}
+
+/** Quita conexiones que apuntan a mapas, tarjetas o pasos que ya no existen. */
+export function pruneOpportunityLinks(project: Project) {
+  const cards = new Map(project.maps.map((m) => [m.id, new Set(m.cards.map((c) => c.id))]))
+  project.maps.forEach((m) => {
+    const steps = new Set(m.steps.map((s) => s.id))
+    m.opportunityLinks = m.opportunityLinks.filter(
+      (l) => steps.has(l.stepId) && cards.get(l.sourceMapId)?.has(l.cardId),
+    )
+    if (m.baseMapId && !cards.has(m.baseMapId)) m.baseMapId = null
+  })
 }
 
 /* ---------- Fuentes ↔ tarjetas ---------- */

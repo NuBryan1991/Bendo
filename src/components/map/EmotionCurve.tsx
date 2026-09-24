@@ -1,5 +1,5 @@
 import type { GridColumn } from '../../lib/map'
-import { EMOTION_CURVE_HEIGHT, STEP_WIDTH } from '../../styles/layout'
+import { EMOTION_CURVE_HEIGHT } from '../../styles/layout'
 
 const PAD = 18
 const LABELS: Record<number, string> = { 2: 'muy positiva', 1: 'positiva', 0: 'neutral', [-1]: 'negativa', [-2]: 'muy negativa' }
@@ -11,10 +11,10 @@ const yFor = (emotion: number) => PAD + ((2 - emotion) * (EMOTION_CURVE_HEIGHT -
  * Curva emocional alineada con las columnas de pasos.
  * Los puntos -2 se dibujan en rojo y más grandes; los momentos de la verdad llevan anillo morado.
  */
-export function EmotionCurve({ columns }: { columns: GridColumn[] }) {
-  const width = columns.length * STEP_WIDTH
+export function EmotionCurve({ columns, stepWidth }: { columns: GridColumn[]; stepWidth: number }) {
+  const width = columns.length * stepWidth
   const points = columns.flatMap((col, i) =>
-    col.kind === 'step' ? [{ x: i * STEP_WIDTH + STEP_WIDTH / 2, y: yFor(col.step.emotion), step: col.step }] : [],
+    col.kind === 'step' ? [{ x: i * stepWidth + stepWidth / 2, y: yFor(col.step.emotion), step: col.step }] : [],
   )
 
   // Curva suave: cada tramo es una Bézier con puntos de control a mitad de camino en x.

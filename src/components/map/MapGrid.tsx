@@ -16,7 +16,7 @@ import { horizontalListSortingStrategy, SortableContext, sortableKeyboardCoordin
 import { Fragment, useState } from 'react'
 import { cardsInCell, gridColumns, stepsOfStage, visibleLanes } from '../../lib/map'
 import { useStudioStore } from '../../store/useStudioStore'
-import { ADD_COLUMN_WIDTH, LANE_LABEL_WIDTH, STEP_WIDTH } from '../../styles/layout'
+import { GRID_SIZES } from '../../styles/layout'
 import type { Lane, LaneGroup } from '../../types'
 import { Button } from '../ui/Button'
 import { CardView } from './CardItem'
@@ -65,7 +65,8 @@ const collisionDetection: CollisionDetection = (args) => {
 const LABEL_CELL = 'sticky left-0 z-[2] border-r border-b border-line bg-surface'
 
 export function MapGrid() {
-  const { project, map, view } = useEditor()
+  const { project, map, view, compact } = useEditor()
+  const size = GRID_SIZES[compact ? 'compact' : 'normal']
   const moveStep = useStudioStore((s) => s.moveStep)
   const moveCard = useStudioStore((s) => s.moveCard)
   const addStage = useStudioStore((s) => s.addStage)
@@ -81,7 +82,7 @@ export function MapGrid() {
   const frontstage = lanes.filter((l) => l.group === 'frontstage')
   const backstage = lanes.filter((l) => l.group === 'backstage')
   const stepIds = columns.flatMap((c) => (c.kind === 'step' ? [`step:${c.step.id}`] : []))
-  const template = `${LANE_LABEL_WIDTH}px repeat(${columns.length}, ${STEP_WIDTH}px) ${ADD_COLUMN_WIDTH}px`
+  const template = `${size.label}px repeat(${columns.length}, ${size.step}px) ${size.add}px`
   const fullRow = { gridColumn: `1 / span ${columns.length + 2}` }
 
   const onDragStart = (e: DragStartEvent) => setActive((e.active.data.current as DragData) ?? null)
@@ -182,7 +183,7 @@ export function MapGrid() {
           <EmotionScale />
         </div>
         <div style={{ gridColumn: `span ${columns.length}` }} className="border-r border-b border-line bg-surface">
-          <EmotionCurve columns={columns} />
+          <EmotionCurve columns={columns} stepWidth={size.step} />
         </div>
         <div className="border-b border-line" />
 
@@ -201,12 +202,12 @@ export function MapGrid() {
 
       <DragOverlay dropAnimation={null}>
         {activeCard && (
-          <div className={`w-[200px] rounded-card shadow-lg ${cardSurface(activeCard)}`}>
+          <div style={{ width: size.step - 16 }} className={`rounded-card shadow-lg ${cardSurface(activeCard)}`}>
             <CardView card={activeCard} />
           </div>
         )}
         {activeStep && (
-          <div className="w-[216px] rounded border border-line-strong bg-surface shadow-lg">
+          <div style={{ width: size.step }} className="rounded border border-line-strong bg-surface shadow-lg">
             <StepHeaderContent step={activeStep} />
           </div>
         )}

@@ -102,7 +102,7 @@ export function buildSampleProject(): Project {
     source?: Source,
   ) => {
     const order = cards.filter((c) => c.stepId === st.id && c.laneId === laneId).length
-    cards.push({
+    const created: Card = {
       id: newId(),
       stepId: st.id,
       laneId,
@@ -111,8 +111,12 @@ export function buildSampleProject(): Project {
       dataType,
       order,
       ...(source ? { sourceId: source.id } : {}),
-    })
+    }
+    cards.push(created)
+    return created
   }
+  /** Tarjetas de oportunidad, para conectarlas con el mapa futuro. */
+  const o = {} as Record<'qr' | 'app' | 'form' | 'plazos' | 'notif' | 'millas', Card>
   const R = 'investigación' as const
   const S = 'supuesto' as const
 
@@ -130,14 +134,14 @@ export function buildSampleProject(): Project {
   card(s.descubre, L.accion, 'Revisa la maleta y toma fotos del daño.', R, 'crudo', src.obs)
   card(s.descubre, L.citas, '"¿Y ahora a quién le digo?"', R, 'crudo', src.p2)
   card(s.descubre, L.pain, 'No hay ningún aviso sobre qué hacer si la maleta llega dañada.', R, 'interpretado', src.obs)
-  card(s.descubre, L.opp, 'Señalética en la cinta con un QR para reportar el daño en el momento.', S, 'interpretado')
+  o.qr = card(s.descubre, L.opp, 'Señalética en la cinta con un QR para reportar el daño en el momento.', S, 'interpretado')
   card(s.descubre, L.stakeholders, 'Empresa de handling (proveedor externo)', R, 'crudo', src.doc)
 
   // 3. Busca dónde reclamar
   card(s.busca, L.accion, 'Pregunta a un guardia dónde reclamar.', R, 'crudo', src.obs)
   card(s.busca, L.canal, 'Personal del aeropuerto', S, 'interpretado')
   card(s.busca, L.pain, 'El mostrador de reclamos está fuera de la vista, detrás de las cintas.', R, 'interpretado', src.obs)
-  card(s.busca, L.opp, 'Guiar desde la app de la aerolínea al aterrizar.', S, 'interpretado')
+  o.app = card(s.busca, L.opp, 'Guiar desde la app de la aerolínea al aterrizar.', S, 'interpretado')
   card(s.busca, L.conocimiento, 'El personal del aeropuerto no conoce el proceso de cada aerolínea.', S, 'interpretado')
 
   // 4. Fila en el mostrador
@@ -156,7 +160,7 @@ export function buildSampleProject(): Project {
   card(s.formulario, L.evidencia, 'Formulario PIR impreso', R, 'crudo', src.obs)
   card(s.formulario, L.pain, 'El 58 % abandona el formulario web al adjuntar fotos.', R, 'crudo', src.analytics)
   card(s.formulario, L.pain, 'Debe escribir dos veces los mismos datos.', R, 'interpretado', src.p2)
-  card(s.formulario, L.opp, 'Un único formulario digital con los datos del vuelo ya cargados.', S, 'interpretado')
+  o.form = card(s.formulario, L.opp, 'Un único formulario digital con los datos del vuelo ya cargados.', S, 'interpretado')
   card(s.formulario, L.sistemas, 'Sistema central de registro de equipaje', S, 'crudo')
   card(s.formulario, L.sistemas, 'Formulario web sin conexión con el sistema central.', S, 'interpretado')
 
@@ -164,7 +168,7 @@ export function buildSampleProject(): Project {
   card(s.caso, L.accion, 'Recibe un papel con el número de caso.', R, 'crudo', src.obs)
   card(s.caso, L.evidencia, 'Comprobante impreso con número de caso', R, 'crudo', src.obs)
   card(s.caso, L.citas, '"Me dieron un número, pero nadie me dijo cuánto se demora."', R, 'crudo', src.p1)
-  card(s.caso, L.opp, 'Explicar los plazos y los próximos pasos en el comprobante.', S, 'interpretado')
+  o.plazos = card(s.caso, L.opp, 'Explicar los plazos y los próximos pasos en el comprobante.', S, 'interpretado')
   card(s.caso, L.procesos, 'El caso se asigna a la central de reclamos en 24–48 h.', R, 'crudo', src.doc)
 
   // 7. Espera
@@ -172,7 +176,7 @@ export function buildSampleProject(): Project {
   card(s.espera, L.canal, 'Call center, email, redes sociales', R, 'crudo', src.survey)
   card(s.espera, L.pain, 'El 64 % no recibió ninguna actualización durante la espera.', R, 'crudo', src.survey)
   card(s.espera, L.citas, '"Sentí que mi reclamo cayó en un hoyo negro."', R, 'crudo', src.p2)
-  card(s.espera, L.opp, 'Notificaciones proactivas del estado del caso.', S, 'interpretado')
+  o.notif = card(s.espera, L.opp, 'Notificaciones proactivas del estado del caso.', S, 'interpretado')
   card(s.espera, L.conocimiento, 'El call center no ve el estado de los reclamos de equipaje.', S, 'interpretado')
   card(s.espera, L.kpis, 'Días hasta la primera respuesta', S, 'interpretado')
 
@@ -180,7 +184,7 @@ export function buildSampleProject(): Project {
   card(s.compensa, L.accion, 'Recibe una transferencia por el valor aprobado.', R, 'crudo', src.survey)
   card(s.compensa, L.canal, 'Email + transferencia bancaria', S, 'interpretado')
   card(s.compensa, L.citas, '"Al final me pagaron, pero no volvería a pasar por eso."', R, 'crudo', src.p1)
-  card(s.compensa, L.opp, 'Ofrecer compensación inmediata en millas para daños menores.', S, 'interpretado')
+  o.millas = card(s.compensa, L.opp, 'Ofrecer compensación inmediata en millas para daños menores.', S, 'interpretado')
   card(s.compensa, L.procesos, 'Aprobación manual según tope de la política de compensación.', R, 'crudo', src.doc)
   card(s.compensa, L.stakeholders, 'Área de finanzas', S, 'interpretado')
   card(s.compensa, L.kpis, 'NPS post-reclamo', S, 'interpretado')
@@ -215,14 +219,18 @@ export function buildSampleProject(): Project {
           ? { ...p, checked: true, note: 'Basado en observación en terreno y encuesta.' }
           : p,
     ),
+    baseMapId: null,
+    opportunityLinks: [],
   }
+
+  const future = buildFutureMap(map, lanes, o)
 
   return {
     id: newId(),
     name: 'Ejemplo · Aerolínea: equipaje dañado',
     description:
       'Proyecto de ejemplo para explorar la app: reclamo de una maleta dañada en una aerolínea ficticia.',
-    maps: [map],
+    maps: [map, future],
     personas: [persona],
     sources,
     createdAt: '2026-03-01',
@@ -244,5 +252,97 @@ export function buildSampleProject(): Project {
     momentOfTruth = false,
   ): Step {
     return { id: newId(), stageId: stage.id, title, type, momentOfTruth, emotion, order }
+  }
+}
+
+/**
+ * Mapa futuro de ejemplo: una hipótesis de cómo debería ser el reclamo.
+ * Todas sus tarjetas son supuestos (aún no se ha probado), y cada paso responde a oportunidades del mapa actual.
+ */
+function buildFutureMap(
+  actual: JourneyMap,
+  lanes: JourneyMap['lanes'],
+  o: Record<'qr' | 'app' | 'form' | 'plazos' | 'notif' | 'millas', Card>,
+): JourneyMap {
+  // El mapa futuro tiene sus propios carriles (misma estructura, ids nuevos).
+  const idFor = new Map(lanes.map((l) => [l.id, newId()]))
+  const futureLanes = lanes.map((l) => ({ ...l, id: idFor.get(l.id)! }))
+  const lane = (name: string) => futureLanes.find((l) => l.name === name)!.id
+
+  const stages: Stage[] = [
+    { id: newId(), name: 'Antes' },
+    { id: newId(), name: 'Durante' },
+    { id: newId(), name: 'Después' },
+  ]
+  const mk = (stage: Stage, order: number, title: string, emotion: Emotion, momentOfTruth = false): Step => ({
+    id: newId(),
+    stageId: stage.id,
+    title,
+    type: 'touchpoint',
+    momentOfTruth,
+    emotion,
+    order,
+  })
+  const f = {
+    qr: mk(stages[0], 0, 'Reporta el daño con el QR de la cinta', 0, true),
+    app: mk(stages[1], 0, 'Completa el reporte en la app con datos precargados', 1),
+    caso: mk(stages[1], 1, 'Recibe su número de caso y los plazos al instante', 1),
+    avisos: mk(stages[2], 0, 'Recibe avisos del estado del caso', 0),
+    elige: mk(stages[2], 1, 'Elige su compensación: millas o transferencia', 2, true),
+  }
+
+  const cards: Card[] = []
+  const add = (step: Step, laneName: string, text: string) =>
+    cards.push({
+      id: newId(),
+      stepId: step.id,
+      laneId: lane(laneName),
+      text,
+      basis: 'supuesto',
+      dataType: 'interpretado',
+      order: cards.filter((c) => c.stepId === step.id && c.laneId === lane(laneName)).length,
+    })
+  add(f.qr, 'Acción del cliente', 'Escanea el QR del cartel junto a la cinta y fotografía el daño.')
+  add(f.qr, 'Canal', 'Cartel con QR + web móvil')
+  add(f.app, 'Acción del cliente', 'Confirma los datos del vuelo, que ya vienen cargados, y adjunta las fotos.')
+  add(f.app, 'Sistemas y herramientas', 'Formulario conectado al sistema central de equipaje.')
+  add(f.caso, 'Evidencia física', 'Email con número de caso, plazo máximo y próximos pasos.')
+  add(f.avisos, 'Canal', 'Notificaciones push y email')
+  add(f.avisos, 'Procesos', 'Cada cambio de estado del caso dispara un aviso automático.')
+  add(f.elige, 'Acción del cliente', 'Acepta millas al instante o espera la transferencia.')
+  add(f.elige, 'KPIs', 'Días hasta la compensación')
+
+  const link = (card: Card, step: Step) => ({ id: newId(), sourceMapId: actual.id, cardId: card.id, stepId: step.id })
+
+  return {
+    id: newId(),
+    title: 'Reclamo de equipaje dañado — estado futuro',
+    designQuestion: actual.designQuestion,
+    personaId: actual.personaId,
+    scenario: 'Camila encuentra su maleta dañada y resuelve el reclamo desde el teléfono antes de salir del aeropuerto.',
+    zoom: 'end-to-end',
+    state: 'futuro',
+    researchStatement: {
+      methods: 'Hipótesis a partir del mapa actual. Pendiente de prototipar y probar con pasajeros.',
+      interviewCount: null,
+      dateFrom: '',
+      dateTo: '',
+      places: '',
+      triangulationNotes: '',
+    },
+    stages,
+    steps: Object.values(f),
+    lanes: futureLanes,
+    cards,
+    principles: defaultPrinciples(),
+    baseMapId: actual.id,
+    opportunityLinks: [
+      link(o.qr, f.qr),
+      link(o.app, f.app),
+      link(o.form, f.app),
+      link(o.plazos, f.caso),
+      link(o.notif, f.avisos),
+      link(o.millas, f.elige),
+    ],
   }
 }

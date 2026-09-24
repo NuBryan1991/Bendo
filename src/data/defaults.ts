@@ -23,14 +23,14 @@ import type {
 
 export const DEFAULT_STAGE_NAMES = ['Antes', 'Durante', 'Después']
 
-export const DEFAULT_LANES: { name: string; group: LaneGroup }[] = [
+export const DEFAULT_LANES: { name: string; group: LaneGroup; role?: 'oportunidades' }[] = [
   { name: 'Storyboard', group: 'frontstage' },
   { name: 'Acción del cliente', group: 'frontstage' },
   { name: 'Canal', group: 'frontstage' },
   { name: 'Evidencia física', group: 'frontstage' },
   { name: 'Pensamientos y citas', group: 'frontstage' },
   { name: 'Pain points', group: 'frontstage' },
-  { name: 'Oportunidades', group: 'frontstage' },
+  { name: 'Oportunidades', group: 'frontstage', role: 'oportunidades' },
   { name: 'Comportamiento del personal', group: 'backstage' },
   { name: 'Conocimiento', group: 'backstage' },
   { name: 'Procesos', group: 'backstage' },
@@ -162,6 +162,8 @@ export function newMap(title: string, personaId: string | null = null): JourneyM
     lanes: defaultLanes(),
     cards: [],
     principles: defaultPrinciples(),
+    baseMapId: null,
+    opportunityLinks: [],
   }
 }
 

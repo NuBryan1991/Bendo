@@ -6,7 +6,7 @@ import { newMap, newProject, newSource, newStep } from '../data/defaults'
 import { buildSampleProject } from '../data/sampleProject'
 import { today } from '../lib/dates'
 import { newId } from '../lib/ids'
-import { cloneMap, cloneProject, stepsOfStage } from '../lib/map'
+import { cloneProject, duplicateMapData, pruneOpportunityLinks, stepsOfStage } from '../lib/map'
 import type {
   Card,
   JourneyMap,
@@ -43,6 +43,16 @@ interface StudioState {
   createMap: (projectId: string, title: string) => string | undefined
   duplicateMap: (projectId: string, mapId: string) => string | undefined
   deleteMap: (projectId: string, mapId: string) => void
+  /** Copia un mapa actual como punto de partida de su estado futuro. */
+  createFutureMap: (projectId: string, mapId: string) => string | undefined
+  /** Conecta una oportunidad del mapa actual con un paso del mapa futuro (stepId null = desconectar). */
+  setOpportunityLink: (
+    projectId: string,
+    futureMapId: string,
+    sourceMapId: string,
+    cardId: string,
+    stepId: string | null,
+  ) => void
   updateMap: (projectId: string, mapId: string, patch: MapPatch) => void
   updateResearch: (projectId: string, mapId: string, patch: Partial<ResearchStatement>) => void
   updatePrinciple: (
@@ -75,6 +85,7 @@ interface StudioState {
   renameLane: (projectId: string, mapId: string, laneId: string, name: string) => void
   moveLane: (projectId: string, mapId: string, laneId: string, delta: -1 | 1) => void
   setLaneGroup: (projectId: string, mapId: string, laneId: string, group: LaneGroup) => void
+  setLaneOpportunity: (projectId: string, mapId: string, laneId: string, isOpportunity: boolean) => void
   deleteLane: (projectId: string, mapId: string, laneId: string) => void
 
   // Tarjetas
@@ -200,7 +211,7 @@ export const useStudioStore = create<StudioState>()(
           const p = findProject(s, projectId)
           const index = p?.maps.findIndex((m) => m.id === mapId) ?? -1
           if (!p || index < 0) return
-          const copy = cloneMap(current(p.maps[index]))
+          const copy = duplicateMapData(current(p.maps[index]))
           copy.title = `${copy.title} (copia)`
           p.maps.splice(index + 1, 0, copy)
           id = copy.id
@@ -210,8 +221,37 @@ export const useStudioStore = create<StudioState>()(
       deleteMap: (projectId, mapId) =>
         set((s) => {
           const p = findProject(s, projectId)
-          if (p) p.maps = p.maps.filter((m) => m.id !== mapId)
+          if (!p) return
+          p.maps = p.maps.filter((m) => m.id !== mapId)
+          pruneOpportunityLinks(p)
           delete s.mapViews[mapId]
+        }),
+      createFutureMap: (projectId, mapId) => {
+        let id: string | undefined
+        set((s) => {
+          const p = findProject(s, projectId)
+          const index = p?.maps.findIndex((m) => m.id === mapId) ?? -1
+          if (!p || index < 0) return
+          const original = p.maps[index]
+          const copy = duplicateMapData(current(original))
+          copy.title = /estado actual/i.test(original.title)
+            ? original.title.replace(/estado actual/i, 'estado futuro')
+            : `${original.title} — estado futuro`
+          copy.state = 'futuro'
+          copy.baseMapId = original.id
+          copy.opportunityLinks = []
+          p.maps.splice(index + 1, 0, copy)
+          id = copy.id
+        })
+        return id
+      },
+      setOpportunityLink: (projectId, futureMapId, sourceMapId, cardId, stepId) =>
+        set((s) => {
+          const m = findMap(s, projectId, futureMapId)
+          if (!m) return
+          // Una oportunidad se conecta con un solo paso de cada mapa futuro.
+          m.opportunityLinks = m.opportunityLinks.filter((l) => l.cardId !== cardId)
+          if (stepId) m.opportunityLinks.push({ id: newId(), sourceMapId, cardId, stepId })
         }),
       updateMap: (projectId, mapId, patch) =>
         set((s) => {
@@ -261,6 +301,7 @@ export const useStudioStore = create<StudioState>()(
           m.stages = m.stages.filter((x) => x.id !== stageId)
           m.steps = m.steps.filter((x) => !stepIds.has(x.id))
           m.cards = m.cards.filter((c) => !stepIds.has(c.stepId))
+          pruneOpportunityLinks(findProject(s, projectId)!)
         }),
 
       /* Pasos */
@@ -303,6 +344,7 @@ export const useStudioStore = create<StudioState>()(
           if (!m || !step) return
           m.steps = m.steps.filter((x) => x.id !== stepId)
           m.cards = m.cards.filter((c) => c.stepId !== stepId)
+          pruneOpportunityLinks(findProject(s, projectId)!)
           renumberSteps(m, step.stageId)
         }),
 
@@ -347,12 +389,20 @@ export const useStudioStore = create<StudioState>()(
             m.lanes.splice(firstBack < 0 ? m.lanes.length : firstBack, 0, lane)
           }
         }),
+      setLaneOpportunity: (projectId, mapId, laneId, isOpportunity) =>
+        set((s) => {
+          const lane = findMap(s, projectId, mapId)?.lanes.find((l) => l.id === laneId)
+          if (!lane) return
+          if (isOpportunity) lane.role = 'oportunidades'
+          else delete lane.role
+        }),
       deleteLane: (projectId, mapId, laneId) =>
         set((s) => {
           const m = findMap(s, projectId, mapId)
           if (!m) return
           m.lanes = m.lanes.filter((l) => l.id !== laneId)
           m.cards = m.cards.filter((c) => c.laneId !== laneId)
+          pruneOpportunityLinks(findProject(s, projectId)!)
         }),
 
       /* Tarjetas */
@@ -405,6 +455,7 @@ export const useStudioStore = create<StudioState>()(
           const card = m?.cards.find((c) => c.id === cardId)
           if (!m || !card) return
           m.cards = m.cards.filter((c) => c.id !== cardId)
+          pruneOpportunityLinks(findProject(s, projectId)!)
           renumberCell(m, card.stepId, card.laneId)
         }),
 
@@ -440,7 +491,23 @@ export const useStudioStore = create<StudioState>()(
     })),
     {
       name: 'journey-map-studio',
-      version: 1,
+      version: 2,
+      migrate: (persisted, version) => {
+        const state = persisted as Pick<StudioState, 'projects' | 'mapViews'>
+        // v1 → v2: mapas futuros vinculados y carril de oportunidades marcado.
+        if (version < 2) {
+          state.projects.forEach((p) =>
+            p.maps.forEach((m) => {
+              m.baseMapId ??= null
+              m.opportunityLinks ??= []
+              m.lanes.forEach((l) => {
+                if (!l.role && l.name.trim().toLowerCase() === 'oportunidades') l.role = 'oportunidades'
+              })
+            }),
+          )
+        }
+        return state as StudioState
+      },
       storage: createJSONStorage(() => localStorage),
     },
   ),

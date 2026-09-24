@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { EditorContext } from '../components/map/EditorContext'
 import { MapGrid } from '../components/map/MapGrid'
 import { MapHeader } from '../components/map/MapHeader'
 import { ViewToggle } from '../components/map/ViewToggle'
 import { SidePanel } from '../components/panel/SidePanel'
 import { Button } from '../components/ui/Button'
+import { futureMapFor } from '../lib/map'
 import { useProject } from '../lib/useProject'
 import { useStudioStore } from '../store/useStudioStore'
 import NotFound from './NotFound'
@@ -18,6 +19,8 @@ export default function MapEditorPage() {
   const [editingCardId, setEditingCardId] = useState<string | null>(null)
   const [panelOpen, setPanelOpen] = useState(true)
   const setMapView = useStudioStore((s) => s.setMapView)
+  const createFutureMap = useStudioStore((s) => s.createFutureMap)
+  const navigate = useNavigate()
   const [params] = useSearchParams()
   const targetCardId = params.get('tarjeta')
 
@@ -42,12 +45,34 @@ export default function MapEditorPage() {
 
   if (!project || !map) return <NotFound message="Este mapa no existe." />
 
+  // Pareja para el comparador: el mapa base (si este es futuro) o su mapa futuro (si es actual).
+  const compareUrl =
+    map.state === 'futuro'
+      ? `/proyecto/${project.id}/comparar?futuro=${map.id}${map.baseMapId ? `&actual=${map.baseMapId}` : ''}`
+      : `/proyecto/${project.id}/comparar?actual=${map.id}${futureMapFor(project, map.id) ? `&futuro=${futureMapFor(project, map.id)!.id}` : ''}`
+
   return (
     <EditorContext.Provider value={{ project, map, view, editingCardId, setEditingCardId }}>
       <div className="flex h-full flex-col">
         <MapHeader
           actions={
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              {map.state === 'actual' && (
+                <Button
+                  size="sm"
+                  icon="copy"
+                  title="Copia este mapa como punto de partida del estado futuro"
+                  onClick={() => {
+                    const id = createFutureMap(project.id, map.id)
+                    if (id) navigate(`/proyecto/${project.id}/mapa/${id}`)
+                  }}
+                >
+                  Crear estado futuro
+                </Button>
+              )}
+              <Button size="sm" icon="compare" onClick={() => navigate(compareUrl)}>
+                Comparar
+              </Button>
               <ViewToggle />
               <Button
                 size="sm"

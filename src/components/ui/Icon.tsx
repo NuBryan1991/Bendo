@@ -15,6 +15,8 @@ const PATHS = {
   alert: 'M12 4l9 16H3zM12 10v4M12 17h.01',
   star: 'M12 4l2.4 5 5.6.8-4 3.9 1 5.5-5-2.7-5 2.7 1-5.5-4-3.9 5.6-.8z',
   arrowLeft: 'M19 12H5M11 6l-6 6 6 6',
+  arrowRight: 'M5 12h14M13 6l6 6-6 6',
+  compare: 'M4 5h7v14H4zM13 5h7v14h-7z',
   edit: 'M4 20h4L19 9l-4-4L4 16zM13 7l4 4',
   swap: 'M7 7h13l-3-3M17 17H4l3 3',
 } as const

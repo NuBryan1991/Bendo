@@ -96,6 +96,7 @@ function MapsTab({ project }: { project: Project }) {
   const createMap = useStudioStore((s) => s.createMap)
   const duplicateMap = useStudioStore((s) => s.duplicateMap)
   const deleteMap = useStudioStore((s) => s.deleteMap)
+  const createFutureMap = useStudioStore((s) => s.createFutureMap)
   const navigate = useNavigate()
   const [title, setTitle] = useState('')
   const [creating, setCreating] = useState(false)
@@ -148,10 +149,37 @@ function MapsTab({ project }: { project: Project }) {
                   <Tag>
                     {m.steps.length} pasos · {m.cards.length} tarjetas
                   </Tag>
+                  {m.baseMapId && (
+                    <Tag>Parte de: {project.maps.find((b) => b.id === m.baseMapId)?.title ?? 'mapa eliminado'}</Tag>
+                  )}
                 </div>
               </div>
               <SolidityMeter value={solidity(m, 'blueprint')} />
-              <div className="flex gap-1">
+              <div className="flex items-center gap-1">
+                {m.state === 'actual' && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      const id = createFutureMap(project.id, m.id)
+                      if (id) navigate(`/proyecto/${project.id}/mapa/${id}`)
+                    }}
+                  >
+                    Crear estado futuro
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  icon="compare"
+                  onClick={() =>
+                    navigate(
+                      `/proyecto/${project.id}/comparar?${m.state === 'actual' ? `actual=${m.id}` : `futuro=${m.id}${m.baseMapId ? `&actual=${m.baseMapId}` : ''}`}`,
+                    )
+                  }
+                >
+                  Comparar
+                </Button>
                 <IconButton icon="copy" label={`Duplicar ${m.title}`} onClick={() => duplicateMap(project.id, m.id)} />
                 <IconButton
                   icon="trash"
