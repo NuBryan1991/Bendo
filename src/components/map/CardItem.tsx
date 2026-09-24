@@ -5,7 +5,7 @@ import { sourceLabel, sourceTypeLabel } from '../../lib/map'
 import { useStudioStore } from '../../store/useStudioStore'
 import type { Card } from '../../types'
 import { Button } from '../ui/Button'
-import { Segmented, TextField } from '../ui/Field'
+import { Segmented, SelectField, TextField } from '../ui/Field'
 import { Icon } from '../ui/Icon'
 import { cardSurface } from './cardStyles'
 import { useEditor } from './EditorContext'
@@ -135,6 +135,16 @@ function CardEditor({ card }: { card: Card }) {
           if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) close()
         }}
         className="w-full resize-y rounded border border-line-strong bg-surface px-2 py-1 text-[13px]"
+      />
+      <SelectField
+        label="Fuente"
+        value={card.sourceId ?? ''}
+        onValueChange={(sourceId) => update({ sourceId: sourceId || undefined })}
+        options={[
+          { value: '', label: 'Sin fuente' },
+          ...project.sources.map((s) => ({ value: s.id, label: sourceLabel(s) })),
+        ]}
+        hint={project.sources.length === 0 ? 'Registra fuentes en la pestaña Fuentes del proyecto.' : undefined}
       />
       <Segmented
         label="Basis"

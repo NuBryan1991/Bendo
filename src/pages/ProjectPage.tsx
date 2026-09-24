@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { BasisBadge, SolidityMeter, Tag } from '../components/ui/Badges'
+import { SourcesTab } from '../components/sources/SourcesTab'
 import { Button, IconButton } from '../components/ui/Button'
 import { Icon } from '../components/ui/Icon'
 import { TextArea, TextField } from '../components/ui/Field'
@@ -47,11 +48,7 @@ export default function ProjectPage() {
         <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
           {tab === 'mapas' && <MapsTab project={project} />}
           {tab === 'personas' && <PersonasTab project={project} />}
-          {tab === 'fuentes' && (
-            <p className="rounded-panel border border-dashed border-line-strong bg-surface p-10 text-center text-ink-muted">
-              La gestión de fuentes llega en una próxima fase.
-            </p>
-          )}
+          {tab === 'fuentes' && <SourcesTab project={project} />}
         </div>
       </main>
     </div>

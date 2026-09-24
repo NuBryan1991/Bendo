@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { EditorContext } from '../components/map/EditorContext'
 import { MapGrid } from '../components/map/MapGrid'
 import { MapHeader } from '../components/map/MapHeader'
@@ -17,6 +17,28 @@ export default function MapEditorPage() {
   const view = useStudioStore((s) => (mapId ? s.mapViews[mapId] : undefined)) ?? 'journey'
   const [editingCardId, setEditingCardId] = useState<string | null>(null)
   const [panelOpen, setPanelOpen] = useState(true)
+  const setMapView = useStudioStore((s) => s.setMapView)
+  const [params] = useSearchParams()
+  const targetCardId = params.get('tarjeta')
+
+  // Si se llega desde una fuente (?tarjeta=…), se muestra y se resalta esa tarjeta.
+  useEffect(() => {
+    if (!map || !targetCardId) return
+    const card = map.cards.find((c) => c.id === targetCardId)
+    const lane = map.lanes.find((l) => l.id === card?.laneId)
+    if (lane?.group === 'backstage') setMapView(map.id, 'blueprint')
+    const timer = setTimeout(() => {
+      const el = document.querySelector<HTMLElement>(`[data-card-id="${targetCardId}"]`)
+      if (!el) return
+      el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' })
+      el.classList.add('card-flash')
+      el.querySelector<HTMLElement>('button:last-of-type')?.focus({ preventScroll: true })
+      setTimeout(() => el.classList.remove('card-flash'), 2600)
+    }, 50)
+    return () => clearTimeout(timer)
+    // Solo al llegar con un enlace nuevo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetCardId])
 
   if (!project || !map) return <NotFound message="Este mapa no existe." />
 

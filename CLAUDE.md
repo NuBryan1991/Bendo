@@ -81,7 +81,7 @@ Decisiones tomadas (confirmadas por defecto con el usuario):
 - [x] 0 Base: Vite, Tailwind, tokens, CLAUDE.md
 - [x] 1 MVP: modelo, guardado, Inicio, Proyecto (Mapas), editor de grilla, curva emocional, datos de ejemplo
 - [x] 2 Vista Blueprint + línea de visibilidad + carriles editables + panel lateral (ficha, declaración, principios)
-- [ ] 3 Pestaña Fuentes: CRUD, vínculo tarjeta↔fuente, tarjetas respaldadas por cada fuente
+- [x] 3 Pestaña Fuentes: CRUD, vínculo tarjeta↔fuente, tarjetas respaldadas por cada fuente
 - [ ] 4 Personas (CRUD, caducidad)
 - [ ] 5 Comparador actual/futuro
 - [ ] 6 Exportación JSON / PNG / PDF

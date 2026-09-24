@@ -119,3 +119,32 @@ export function cloneProject(project: Project, name: string): Project {
   copy.maps = project.maps.map((m) => cloneMap(m, new Map(idMap)))
   return copy
 }
+
+/* ---------- Fuentes ↔ tarjetas ---------- */
+
+export interface SourceBacklink {
+  map: JourneyMap
+  card: Card
+  step?: Step
+  lane?: Lane
+}
+
+/** Todas las tarjetas del proyecto que citan una fuente, agrupables por mapa. */
+export function cardsBySource(project: Project, sourceId: string): SourceBacklink[] {
+  return project.maps.flatMap((map) => {
+    const steps = orderedSteps(map)
+    return map.cards
+      .filter((c) => c.sourceId === sourceId)
+      .map((card) => ({
+        map,
+        card,
+        step: steps.find((s) => s.id === card.stepId),
+        lane: map.lanes.find((l) => l.id === card.laneId),
+      }))
+      .sort(
+        (a, b) =>
+          steps.indexOf(a.step!) - steps.indexOf(b.step!) ||
+          map.lanes.indexOf(a.lane!) - map.lanes.indexOf(b.lane!),
+      )
+  })
+}
