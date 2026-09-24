@@ -2,18 +2,20 @@ import { current } from 'immer'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-import { newMap, newProject, newSource, newStep } from '../data/defaults'
+import { newMap, newPersona, newProject, newSource, newStep } from '../data/defaults'
 import { buildSampleProject } from '../data/sampleProject'
 import { today } from '../lib/dates'
 import { newId } from '../lib/ids'
 import { normalizeProject } from '../lib/projectIO'
 import { cloneProject, duplicateMapData, pruneOpportunityLinks, stepsOfStage } from '../lib/map'
+import { safeLocalStorage } from './saveStatus'
 import type {
   Card,
   JourneyMap,
   Lane,
   LaneGroup,
   MapView,
+  Persona,
   PrincipleCheck,
   PrincipleId,
   Project,
@@ -103,6 +105,13 @@ interface StudioState {
     toIndex: number,
   ) => void
   deleteCard: (projectId: string, mapId: string, cardId: string) => void
+
+  // Personas
+  addPersona: (projectId: string) => string | undefined
+  updatePersona: (projectId: string, personaId: string, patch: Partial<Omit<Persona, 'id'>>) => void
+  duplicatePersona: (projectId: string, personaId: string) => string | undefined
+  /** Elimina la persona; los mapas que la usaban quedan sin actor principal. */
+  deletePersona: (projectId: string, personaId: string) => void
 
   // Fuentes
   addSource: (projectId: string, data?: Partial<Omit<Source, 'id'>>) => string | undefined
@@ -470,6 +479,46 @@ export const useStudioStore = create<StudioState>()(
           renumberCell(m, card.stepId, card.laneId)
         }),
 
+      /* Personas */
+      addPersona: (projectId) => {
+        let id: string | undefined
+        set((s) => {
+          const p = findProject(s, projectId)
+          if (!p) return
+          const persona = newPersona('Nueva persona')
+          p.personas.push(persona)
+          id = persona.id
+        })
+        return id
+      },
+      updatePersona: (projectId, personaId, patch) =>
+        set((s) => {
+          const persona = findProject(s, projectId)?.personas.find((x) => x.id === personaId)
+          if (persona) Object.assign(persona, patch)
+        }),
+      duplicatePersona: (projectId, personaId) => {
+        let id: string | undefined
+        set((s) => {
+          const p = findProject(s, projectId)
+          const index = p?.personas.findIndex((x) => x.id === personaId) ?? -1
+          if (!p || index < 0) return
+          const copy = { ...structuredClone(current(p.personas[index])), id: newId() }
+          copy.name = `${copy.name} (copia)`
+          p.personas.splice(index + 1, 0, copy)
+          id = copy.id
+        })
+        return id
+      },
+      deletePersona: (projectId, personaId) =>
+        set((s) => {
+          const p = findProject(s, projectId)
+          if (!p) return
+          p.personas = p.personas.filter((x) => x.id !== personaId)
+          p.maps.forEach((m) => {
+            if (m.personaId === personaId) m.personaId = null
+          })
+        }),
+
       /* Fuentes */
       addSource: (projectId, data) => {
         let id: string | undefined
@@ -509,7 +558,7 @@ export const useStudioStore = create<StudioState>()(
         if (version < 2) state.projects.forEach((p) => normalizeProject(p))
         return state as StudioState
       },
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => safeLocalStorage),
     },
   ),
 )

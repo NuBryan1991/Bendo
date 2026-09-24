@@ -112,7 +112,7 @@ export function Segmented<T extends string>({
   return (
     <fieldset className="flex flex-col gap-1" disabled={disabled}>
       <legend className={hideLabel ? 'sr-only' : 'mb-1 text-xs font-semibold text-ink-muted'}>{label}</legend>
-      <div className="inline-flex rounded-md border border-line-strong bg-surface p-0.5">
+      <div className="inline-flex self-start rounded-md border border-line-strong bg-surface p-0.5">
         {options.map((o) => {
           const checked = o.value === value
           return (

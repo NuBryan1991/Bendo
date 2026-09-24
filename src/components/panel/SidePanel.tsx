@@ -1,4 +1,5 @@
 import { useId, useState, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { PRINCIPLES, STATE_OPTIONS, ZOOM_OPTIONS } from '../../data/defaults'
 import { formatDate, isExpired } from '../../lib/dates'
 import { useStudioStore } from '../../store/useStudioStore'
@@ -79,12 +80,19 @@ function MapInfoForm() {
         options={[{ value: '', label: 'Sin persona' }, ...project.personas.map((p) => ({ value: p.id, label: p.name }))]}
         onValueChange={(v) => update({ personaId: v || null })}
         hint={
-          persona &&
-          (isExpired(persona.expiresAt) ? (
-            <span className="font-semibold text-critical">Venció el {formatDate(persona.expiresAt)}</span>
-          ) : (
-            `Vigente hasta el ${formatDate(persona.expiresAt)}`
-          ))
+          persona && (
+            <>
+              {isExpired(persona.expiresAt) ? (
+                <span className="font-semibold text-critical">Venció el {formatDate(persona.expiresAt)}</span>
+              ) : (
+                `Vigente hasta el ${formatDate(persona.expiresAt)}`
+              )}{' '}
+              ·{' '}
+              <Link to={`/proyecto/${project.id}/persona/${persona.id}`} className="text-primary underline">
+                Ver ficha
+              </Link>
+            </>
+          )
         }
       />
       <TextArea label="Escenario" rows={3} value={map.scenario} onChange={(e) => update({ scenario: e.target.value })} />

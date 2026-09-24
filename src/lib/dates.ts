@@ -31,3 +31,9 @@ export function formatDate(date: ISODate | ''): string {
 export function isExpired(expiresAt: ISODate, reference: ISODate = today()): boolean {
   return expiresAt < reference
 }
+
+/** Días que faltan hasta una fecha (negativo si ya pasó). */
+export function daysUntil(date: ISODate, reference: ISODate = today()): number {
+  const ms = new Date(`${date}T00:00:00`).getTime() - new Date(`${reference}T00:00:00`).getTime()
+  return Math.round(ms / 86_400_000)
+}

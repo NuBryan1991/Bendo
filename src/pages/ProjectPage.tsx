@@ -1,13 +1,14 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { BasisBadge, SolidityMeter, Tag } from '../components/ui/Badges'
+import { SolidityMeter, Tag } from '../components/ui/Badges'
+import { PersonasTab } from '../components/personas/PersonasTab'
 import { SourcesTab } from '../components/sources/SourcesTab'
 import { Button, IconButton } from '../components/ui/Button'
 import { Icon } from '../components/ui/Icon'
 import { TextArea, TextField } from '../components/ui/Field'
 import { Popover } from '../components/ui/Popover'
 import { Tabs } from '../components/ui/Tabs'
-import { formatDate, isExpired, today } from '../lib/dates'
+import { today } from '../lib/dates'
 import { downloadFile, projectToJSON, slugify } from '../lib/projectIO'
 import { solidity } from '../lib/map'
 import { useProject } from '../lib/useProject'
@@ -203,33 +204,6 @@ function MapsTab({ project }: { project: Project }) {
           ))}
         </ul>
       )}
-    </section>
-  )
-}
-
-/** Vista de solo lectura. La edición de personas llega en una próxima fase. */
-function PersonasTab({ project }: { project: Project }) {
-  return (
-    <section aria-label="Personas">
-      <p className="mb-4 text-sm text-ink-muted">La edición de personas llega en una próxima fase.</p>
-      <ul className="grid gap-4 sm:grid-cols-2">
-        {project.personas.map((p) => {
-          const expired = isExpired(p.expiresAt)
-          return (
-            <li key={p.id} className="rounded-panel border border-line bg-surface p-5">
-              <div className="flex items-start justify-between gap-2">
-                <h2 className="font-semibold">{p.name}</h2>
-                <BasisBadge basis={p.basis} />
-              </div>
-              {p.demographics && <p className="mt-1 text-sm text-ink-muted">{p.demographics}</p>}
-              {p.quote && <blockquote className="mt-3 border-l-2 border-line-strong pl-3 text-sm italic">“{p.quote}”</blockquote>}
-              <p className={`mt-3 text-xs ${expired ? 'font-semibold text-critical' : 'text-ink-muted'}`}>
-                {expired ? 'Venció el' : 'Vigente hasta el'} {formatDate(p.expiresAt)}
-              </p>
-            </li>
-          )
-        })}
-      </ul>
     </section>
   )
 }

@@ -28,7 +28,16 @@ export function MapHeader({ actions }: { actions?: ReactNode }) {
           <div className="mt-1 flex flex-wrap items-center gap-1.5">
             <Tag>{map.state === 'actual' ? 'Estado actual' : 'Estado futuro'}</Tag>
             <Tag>Zoom: {map.zoom}</Tag>
-            <Tag>Actor: {persona?.name ?? 'sin persona'}</Tag>
+            {persona ? (
+              <Link
+                to={`/proyecto/${project.id}/persona/${persona.id}`}
+                className="inline-flex items-center rounded bg-surface-muted px-1.5 py-0.5 text-[11px] font-medium text-ink-muted underline hover:text-ink"
+              >
+                Actor: {persona.name}
+              </Link>
+            ) : (
+              <Tag>Actor: sin persona</Tag>
+            )}
           </div>
         </div>
         <SolidityMeter value={solidity(map, view)} />
@@ -40,7 +49,10 @@ export function MapHeader({ actions }: { actions?: ReactNode }) {
           <Icon name="alert" />
           <span>
             <strong>La persona “{persona.name}” venció el {formatDate(persona.expiresAt)}.</strong> Revísala con
-            investigación reciente antes de tomar decisiones con este mapa.
+            investigación reciente antes de tomar decisiones con este mapa.{' '}
+            <Link to={`/proyecto/${project.id}/persona/${persona.id}`} className="font-semibold underline">
+              Abrir persona
+            </Link>
           </span>
         </div>
       )}
