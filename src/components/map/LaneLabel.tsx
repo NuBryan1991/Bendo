@@ -8,7 +8,7 @@ import { useEditor } from './EditorContext'
 
 /** Nombre del carril con su menú de edición (renombrar, mover, cambiar de grupo, eliminar). */
 export function LaneLabel({ lane, isFirst, isLast }: { lane: Lane; isFirst: boolean; isLast: boolean }) {
-  const { project, map } = useEditor()
+  const { project, map, exporting } = useEditor()
   const renameLane = useStudioStore((s) => s.renameLane)
   const moveLane = useStudioStore((s) => s.moveLane)
   const setLaneGroup = useStudioStore((s) => s.setLaneGroup)
@@ -19,6 +19,7 @@ export function LaneLabel({ lane, isFirst, isLast }: { lane: Lane; isFirst: bool
   return (
     <div className="flex h-full items-start gap-1 px-3 py-2">
       <span className="min-w-0 flex-1 text-sm leading-snug font-semibold [overflow-wrap:anywhere]">{lane.name || 'Sin nombre'}</span>
+      {!exporting && (
       <Popover
         label={`Editar carril ${lane.name}`}
         trigger={<Icon name="edit" size={14} />}
@@ -80,6 +81,7 @@ export function LaneLabel({ lane, isFirst, isLast }: { lane: Lane; isFirst: bool
           </div>
         )}
       </Popover>
+      )}
     </div>
   )
 }

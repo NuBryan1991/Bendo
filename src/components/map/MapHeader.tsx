@@ -50,9 +50,11 @@ export function MapHeader({ actions }: { actions?: ReactNode }) {
   )
 }
 
-function Legend() {
+export function Legend({ bordered = true }: { bordered?: boolean }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-line px-5 py-2 text-xs text-ink-muted">
+    <div
+      className={`flex flex-wrap items-center gap-x-5 gap-y-1 px-5 py-2 text-xs text-ink-muted ${bordered ? 'border-t border-line' : ''}`}
+    >
       <span className="font-semibold">Leyenda:</span>
       <span className="inline-flex items-center gap-1.5">
         <span className="h-3.5 w-5 rounded-sm border-2 border-solid border-research bg-surface" /> Investigación

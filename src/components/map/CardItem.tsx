@@ -46,7 +46,7 @@ export function CardView({
   card: Card
   handleProps?: Record<string, unknown>
 }) {
-  const { setEditingCardId, project } = useEditor()
+  const { setEditingCardId, project, exporting } = useEditor()
   const source = card.sourceId ? project.sources.find((s) => s.id === card.sourceId) : undefined
   const futureSteps = futureStepsForCard(project, card.id)
 
@@ -56,6 +56,7 @@ export function CardView({
         <img src={card.imageUrl} alt="" className="h-20 w-full rounded object-cover" loading="lazy" />
       )}
       <div className="flex items-start gap-1">
+        {!exporting && (
         <button
           type="button"
           aria-label="Mover tarjeta (arrastra o pulsa Espacio y usa las flechas)"
@@ -64,16 +65,17 @@ export function CardView({
         >
           <Icon name="grip" size={14} />
         </button>
+        )}
         <button
           type="button"
           onClick={() => setEditingCardId(card.id)}
-          className="min-w-0 flex-1 rounded text-left text-[13px] leading-snug text-ink hover:underline"
+          className="min-w-0 flex-1 rounded text-left text-[13px] leading-snug text-ink [overflow-wrap:anywhere] hover:underline"
           aria-label={`Editar tarjeta: ${card.text || 'vacía'}`}
         >
           {card.text || <span className="italic text-ink-muted">Tarjeta vacía</span>}
         </button>
       </div>
-      <div className="flex flex-wrap items-center gap-1 pl-5 text-[11px]">
+      <div className={`flex flex-wrap items-center gap-1 text-[11px] ${exporting ? '' : 'pl-5'}`}>
         <span className={`font-semibold ${card.basis === 'investigación' ? 'text-research-ink' : 'text-assumption-ink'}`}>
           {card.basis === 'investigación' ? 'Investigación' : 'Supuesto'}
         </span>
@@ -81,19 +83,19 @@ export function CardView({
       </div>
       {futureSteps.length > 0 && (
         <p
-          className="flex items-start gap-1 pl-5 text-[11px] font-medium text-primary"
+          className={`flex items-start gap-1 text-[11px] font-medium text-primary ${exporting ? '' : 'pl-5'}`}
           title={futureSteps.map(({ map, step }) => `${map.title}: ${step.title}`).join('\n')}
         >
           <Icon name="arrowRight" size={11} className="mt-px" />
-          <span className="line-clamp-2">
+          <span className={exporting ? '' : 'line-clamp-2'}>
             Futuro: {futureSteps.map(({ step }) => step.title).join(' · ')}
           </span>
         </p>
       )}
       {source && (
-        <p className="flex items-center gap-1 pl-5 text-[11px] text-ink-muted" title={`Fuente: ${sourceLabel(source)}`}>
+        <p className={`flex items-center gap-1 text-[11px] text-ink-muted ${exporting ? '' : 'pl-5'}`} title={`Fuente: ${sourceLabel(source)}`}>
           <Icon name="link" size={11} />
-          <span className="truncate">{source.participant || sourceTypeLabel(source.type)}</span>
+          <span className={exporting ? '' : 'truncate'}>{source.participant || sourceTypeLabel(source.type)}</span>
         </p>
       )}
     </div>

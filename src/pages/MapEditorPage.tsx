@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { ExportMenu } from '../components/export/ExportMenu'
 import { EditorContext } from '../components/map/EditorContext'
 import { MapGrid } from '../components/map/MapGrid'
 import { MapHeader } from '../components/map/MapHeader'
@@ -73,6 +74,7 @@ export default function MapEditorPage() {
               <Button size="sm" icon="compare" onClick={() => navigate(compareUrl)}>
                 Comparar
               </Button>
+              <ExportMenu />
               <ViewToggle />
               <Button
                 size="sm"

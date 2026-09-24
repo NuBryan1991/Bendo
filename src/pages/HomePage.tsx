@@ -1,8 +1,9 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button, IconButton } from '../components/ui/Button'
 import { TextArea, TextField } from '../components/ui/Field'
 import { formatDate } from '../lib/dates'
+import { ImportError, projectFromJSON } from '../lib/projectIO'
 import { useStudioStore } from '../store/useStudioStore'
 
 export default function HomePage() {
@@ -11,7 +12,23 @@ export default function HomePage() {
   const duplicateProject = useStudioStore((s) => s.duplicateProject)
   const deleteProject = useStudioStore((s) => s.deleteProject)
   const addSampleProject = useStudioStore((s) => s.addSampleProject)
+  const importProject = useStudioStore((s) => s.importProject)
   const navigate = useNavigate()
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [importError, setImportError] = useState<string | null>(null)
+
+  const onImport = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = '' // permite volver a elegir el mismo archivo
+    if (!file) return
+    try {
+      const project = projectFromJSON(await file.text())
+      setImportError(null)
+      navigate(`/proyecto/${importProject(project)}`)
+    } catch (err) {
+      setImportError(err instanceof ImportError ? err.message : 'No se pudo leer el archivo.')
+    }
+  }
 
   const [creating, setCreating] = useState(false)
   const [name, setName] = useState('')
@@ -32,13 +49,22 @@ export default function HomePage() {
             <h1 className="text-xl font-semibold">Journey Map Studio</h1>
             <p className="text-sm text-ink-muted">Journey maps y blueprints que distinguen investigación de supuestos.</p>
           </div>
-          <Button variant="primary" icon="plus" onClick={() => setCreating(true)}>
-            Nuevo proyecto
-          </Button>
+          <div className="flex gap-2">
+            <input ref={fileRef} type="file" accept=".json,application/json" className="hidden" onChange={onImport} />
+            <Button onClick={() => fileRef.current?.click()}>Importar proyecto (JSON)</Button>
+            <Button variant="primary" icon="plus" onClick={() => setCreating(true)}>
+              Nuevo proyecto
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-5xl px-6 py-8">
+        {importError && (
+          <p role="alert" className="mb-6 rounded-md border border-critical bg-critical-soft px-4 py-3 text-sm text-critical">
+            <strong>No se pudo importar.</strong> {importError}
+          </p>
+        )}
         {creating && (
           <form
             onSubmit={submit}

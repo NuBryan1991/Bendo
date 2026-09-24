@@ -6,6 +6,7 @@ import { newMap, newProject, newSource, newStep } from '../data/defaults'
 import { buildSampleProject } from '../data/sampleProject'
 import { today } from '../lib/dates'
 import { newId } from '../lib/ids'
+import { normalizeProject } from '../lib/projectIO'
 import { cloneProject, duplicateMapData, pruneOpportunityLinks, stepsOfStage } from '../lib/map'
 import type {
   Card,
@@ -38,6 +39,8 @@ interface StudioState {
   duplicateProject: (projectId: string) => string | undefined
   deleteProject: (projectId: string) => void
   addSampleProject: () => string
+  /** Agrega un proyecto ya leído de un archivo (ver lib/projectIO). */
+  importProject: (project: Project) => string
 
   // Mapas
   createMap: (projectId: string, title: string) => string | undefined
@@ -185,6 +188,14 @@ export const useStudioStore = create<StudioState>()(
         set((s) => {
           s.projects = s.projects.filter((p) => p.id !== projectId)
         }),
+      importProject: (project) => {
+        set((s) => {
+          const taken = new Set(s.projects.map((p) => p.name))
+          if (taken.has(project.name)) project.name = `${project.name} (importado)`
+          s.projects.unshift(project)
+        })
+        return project.id
+      },
       addSampleProject: () => {
         const project = buildSampleProject()
         set((s) => {
@@ -495,17 +506,7 @@ export const useStudioStore = create<StudioState>()(
       migrate: (persisted, version) => {
         const state = persisted as Pick<StudioState, 'projects' | 'mapViews'>
         // v1 → v2: mapas futuros vinculados y carril de oportunidades marcado.
-        if (version < 2) {
-          state.projects.forEach((p) =>
-            p.maps.forEach((m) => {
-              m.baseMapId ??= null
-              m.opportunityLinks ??= []
-              m.lanes.forEach((l) => {
-                if (!l.role && l.name.trim().toLowerCase() === 'oportunidades') l.role = 'oportunidades'
-              })
-            }),
-          )
-        }
+        if (version < 2) state.projects.forEach((p) => normalizeProject(p))
         return state as StudioState
       },
       storage: createJSONStorage(() => localStorage),

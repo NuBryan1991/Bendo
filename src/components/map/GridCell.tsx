@@ -9,7 +9,7 @@ import { useEditor } from './EditorContext'
 
 /** Celda de la grilla (paso × carril): contiene tarjetas ordenables y recibe tarjetas arrastradas. */
 export function GridCell({ step, lane }: { step: Step; lane: Lane }) {
-  const { project, map, setEditingCardId } = useEditor()
+  const { project, map, setEditingCardId, exporting } = useEditor()
   const addCard = useStudioStore((s) => s.addCard)
   const cards = cardsInCell(map, step.id, lane.id)
   const { setNodeRef, isOver } = useDroppable({
@@ -29,6 +29,7 @@ export function GridCell({ step, lane }: { step: Step; lane: Lane }) {
           <CardItem key={c.id} card={c} />
         ))}
       </SortableContext>
+      {!exporting && (
       <button
         type="button"
         onClick={() => setEditingCardId(addCard(project.id, map.id, step.id, lane.id) ?? null)}
@@ -37,6 +38,7 @@ export function GridCell({ step, lane }: { step: Step; lane: Lane }) {
       >
         <Icon name="plus" size={12} /> Tarjeta
       </button>
+      )}
     </div>
   )
 }

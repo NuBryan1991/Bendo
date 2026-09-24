@@ -10,6 +10,10 @@ export interface EditorContextValue {
   setEditingCardId: (id: string | null) => void
   /** Grilla más estrecha (se usa en el comparador). */
   compact?: boolean
+  /** Modo exportación: sin botones ni asas, y sin cortar textos. */
+  exporting?: boolean
+  /** Ancho de columna de paso forzado (lo usa la exportación para ajustar la proporción). */
+  stepWidth?: number
 }
 
 export const EditorContext = createContext<EditorContextValue | null>(null)

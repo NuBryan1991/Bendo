@@ -7,7 +7,8 @@ import { Icon } from '../components/ui/Icon'
 import { TextArea, TextField } from '../components/ui/Field'
 import { Popover } from '../components/ui/Popover'
 import { Tabs } from '../components/ui/Tabs'
-import { formatDate, isExpired } from '../lib/dates'
+import { formatDate, isExpired, today } from '../lib/dates'
+import { downloadFile, projectToJSON, slugify } from '../lib/projectIO'
 import { solidity } from '../lib/map'
 import { useProject } from '../lib/useProject'
 import { useStudioStore } from '../store/useStudioStore'
@@ -63,31 +64,40 @@ function ProjectHeading({ project }: { project: Project }) {
         <h1 className="text-2xl font-semibold">{project.name}</h1>
         {project.description && <p className="mt-1 max-w-3xl text-sm text-ink-muted">{project.description}</p>}
       </div>
-      <Popover
-        label="Editar datos del proyecto"
-        width={360}
-        triggerClassName="inline-flex h-8 items-center gap-1.5 rounded-md border border-line-strong px-2.5 text-sm font-medium hover:bg-surface-muted"
-        trigger={
-          <>
-            <Icon name="edit" /> Editar
-          </>
-        }
-      >
-        {() => (
-          <div className="flex flex-col gap-3">
-            <TextField
-              label="Nombre del proyecto"
-              value={project.name}
-              onChange={(e) => updateProject(project.id, { name: e.target.value })}
-            />
-            <TextArea
-              label="Descripción"
-              value={project.description}
-              onChange={(e) => updateProject(project.id, { description: e.target.value })}
-            />
-          </div>
-        )}
-      </Popover>
+      <div className="flex shrink-0 gap-2">
+        <Button
+          size="sm"
+          title="Descarga el proyecto completo (mapas, personas y fuentes) para respaldarlo o compartirlo"
+          onClick={() => downloadFile(projectToJSON(project), `${slugify(project.name)}-${today()}.json`)}
+        >
+          Exportar JSON
+        </Button>
+        <Popover
+          label="Editar datos del proyecto"
+          width={360}
+          triggerClassName="inline-flex h-8 items-center gap-1.5 rounded-md border border-line-strong px-2.5 text-sm font-medium hover:bg-surface-muted"
+          trigger={
+            <>
+              <Icon name="edit" /> Editar
+            </>
+          }
+        >
+          {() => (
+            <div className="flex flex-col gap-3">
+              <TextField
+                label="Nombre del proyecto"
+                value={project.name}
+                onChange={(e) => updateProject(project.id, { name: e.target.value })}
+              />
+              <TextArea
+                label="Descripción"
+                value={project.description}
+                onChange={(e) => updateProject(project.id, { description: e.target.value })}
+              />
+            </div>
+          )}
+        </Popover>
+      </div>
     </div>
   )
 }

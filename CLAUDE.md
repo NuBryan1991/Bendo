@@ -38,6 +38,9 @@ src/
   components/map/          grilla, pasos, tarjetas, curva emocional, cabecera
   components/panel/        panel lateral del mapa
   components/sources/      pestaña Fuentes
+  components/export/       lámina imprimible (ExportSheet) y menú Exportar
+  lib/exportMap.tsx        PNG/PDF (carga diferida: html-to-image + jsPDF)
+  lib/projectIO.ts         exportar/importar JSON, normalización y validación
 ```
 
 ## Modelo de datos (resumen; ver `src/types.ts`)
@@ -74,6 +77,11 @@ Decisiones tomadas (confirmadas por defecto con el usuario):
 - "Crear estado futuro" copia el mapa actual completo (tarjetas incluidas, con su basis), con state `futuro`,
   baseMapId apuntando al original y sin conexiones.
 - Las conexiones que apuntan a tarjetas, pasos o mapas eliminados se limpian solas (`pruneOpportunityLinks`).
+- Exportación PNG/PDF: se dibuja una lámina fuera de pantalla (`ExportSheet`, EditorContext con
+  `exporting: true`: sin botones, asas ni textos truncados). Se prueban anchos de columna para acercarse a
+  la proporción del papel (A3–A0 horizontal o ajustado al contenido), ~150 ppp, con límites de canvas.
+  Se avisa de textos recortados, imágenes que no cargan (espera máx. 8 s) y hoja con mucho blanco.
+- Importar JSON siempre crea un proyecto nuevo con ids nuevos; formato `{ app, version, exportedAt, project }`.
 - Guardado versionado: `persist` versión 2 con `migrate` (v1 → v2 agrega baseMapId, opportunityLinks y role).
 
 ## Reglas de UX (no romper)
@@ -91,8 +99,8 @@ Decisiones tomadas (confirmadas por defecto con el usuario):
 - [x] 2 Vista Blueprint + línea de visibilidad + carriles editables + panel lateral (ficha, declaración, principios)
 - [x] 3 Pestaña Fuentes: CRUD, vínculo tarjeta↔fuente, tarjetas respaldadas por cada fuente
 - [x] 4 Estado futuro + comparador lado a lado + conexión oportunidad → paso futuro
-- [ ] 5 Personas (CRUD, caducidad)
-- [ ] 6 Exportación JSON / PNG / PDF
+- [x] 5 Exportación: JSON (exportar/importar), PNG y PDF horizontal para imprimir en gran formato
+- [ ] 6 Personas (CRUD, caducidad)
 - [ ] 7 Pulido de accesibilidad y pruebas
 
 ## Forma de trabajo

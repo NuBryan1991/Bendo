@@ -65,8 +65,11 @@ const collisionDetection: CollisionDetection = (args) => {
 const LABEL_CELL = 'sticky left-0 z-[2] border-r border-b border-line bg-surface'
 
 export function MapGrid() {
-  const { project, map, view, compact } = useEditor()
-  const size = GRID_SIZES[compact ? 'compact' : 'normal']
+  const { project, map, view, compact, exporting, stepWidth } = useEditor()
+  const base = GRID_SIZES[compact ? 'compact' : 'normal']
+  const size = { ...base, step: stepWidth ?? base.step }
+  // Al exportar no hay columna final de "agregar etapa".
+  const addColumn = exporting ? [] : [<div key="add" className="border-b border-line" />]
   const moveStep = useStudioStore((s) => s.moveStep)
   const moveCard = useStudioStore((s) => s.moveCard)
   const addStage = useStudioStore((s) => s.addStage)
@@ -82,8 +85,8 @@ export function MapGrid() {
   const frontstage = lanes.filter((l) => l.group === 'frontstage')
   const backstage = lanes.filter((l) => l.group === 'backstage')
   const stepIds = columns.flatMap((c) => (c.kind === 'step' ? [`step:${c.step.id}`] : []))
-  const template = `${size.label}px repeat(${columns.length}, ${size.step}px) ${size.add}px`
-  const fullRow = { gridColumn: `1 / span ${columns.length + 2}` }
+  const template = `${size.label}px repeat(${columns.length}, ${size.step}px)${exporting ? '' : ` ${size.add}px`}`
+  const fullRow = { gridColumn: `1 / span ${columns.length + (exporting ? 1 : 2)}` }
 
   const onDragStart = (e: DragStartEvent) => setActive((e.active.data.current as DragData) ?? null)
 
@@ -122,7 +125,7 @@ export function MapGrid() {
             <EmptyCell key={col.stage.id} backstage={lane.group === 'backstage'} />
           ),
         )}
-        <div className="border-b border-line" />
+        {addColumn}
       </Fragment>
     ))
 
@@ -130,7 +133,7 @@ export function MapGrid() {
     <div style={fullRow} className="border-b border-line bg-canvas">
       <div className="sticky left-0 inline-flex items-center gap-3 px-3 py-1.5">
         <span className="text-xs font-bold tracking-wider text-ink-muted uppercase">{label}</span>
-        <LaneAddButton group={group} />
+        {!exporting && <LaneAddButton group={group} />}
       </div>
     </div>
   )
@@ -158,11 +161,13 @@ export function MapGrid() {
             span={Math.max(1, columns.filter((c) => c.stage.id === stage.id).length)}
           />
         ))}
-        <div className="flex items-center border-b border-line px-2">
-          <Button size="sm" variant="ghost" icon="plus" onClick={() => addStage(project.id, map.id)}>
-            Etapa
-          </Button>
-        </div>
+        {!exporting && (
+          <div className="flex items-center border-b border-line px-2">
+            <Button size="sm" variant="ghost" icon="plus" onClick={() => addStage(project.id, map.id)}>
+              Etapa
+            </Button>
+          </div>
+        )}
 
         {/* Fila 2: pasos */}
         <div className={`${LABEL_CELL} flex items-center px-3 text-xs font-semibold text-ink-muted`}>Pasos</div>
@@ -175,7 +180,7 @@ export function MapGrid() {
             ),
           )}
         </SortableContext>
-        <div className="border-b border-line" />
+        {addColumn}
 
         {/* Fila 3: curva emocional */}
         <div className={`${LABEL_CELL} px-3 pt-2 text-xs font-semibold text-ink-muted`}>
@@ -185,7 +190,7 @@ export function MapGrid() {
         <div style={{ gridColumn: `span ${columns.length}` }} className="border-r border-b border-line bg-surface">
           <EmotionCurve columns={columns} stepWidth={size.step} />
         </div>
-        <div className="border-b border-line" />
+        {addColumn}
 
         {/* Carriles */}
         {groupHeader('frontstage', 'Frontstage')}

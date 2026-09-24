@@ -32,7 +32,7 @@ export function StepHeader({ step }: { step: Step }) {
 
 /** Contenido de la cabecera del paso (también se usa en la vista previa al arrastrar). */
 export function StepHeaderContent({ step, handleProps }: { step: Step; handleProps?: Record<string, unknown> }) {
-  const { project, map } = useEditor()
+  const { project, map, exporting } = useEditor()
   const critical = step.emotion === -2
   const answers = opportunitiesForStep(project, map, step.id)
   return (
@@ -42,6 +42,7 @@ export function StepHeaderContent({ step, handleProps }: { step: Step; handlePro
       }`}
     >
       <div className="flex items-start gap-1">
+        {!exporting && (
         <button
           type="button"
           aria-label={`Mover paso ${step.title} (arrastra o pulsa Espacio y usa las flechas)`}
@@ -50,10 +51,11 @@ export function StepHeaderContent({ step, handleProps }: { step: Step; handlePro
         >
           <Icon name="grip" size={14} />
         </button>
-        <span className="min-w-0 flex-1 text-sm leading-snug font-semibold">{step.title || 'Sin título'}</span>
-        {handleProps && <StepMenu step={step} />}
+        )}
+        <span className="min-w-0 flex-1 text-sm leading-snug font-semibold [overflow-wrap:anywhere]">{step.title || 'Sin título'}</span>
+        {handleProps && !exporting && <StepMenu step={step} />}
       </div>
-      <div className="flex flex-wrap gap-1 pl-5">
+      <div className={`flex flex-wrap gap-1 ${exporting ? '' : 'pl-5'}`}>
         {step.momentOfTruth && (
           <span className="inline-flex items-center gap-0.5 rounded bg-moment px-1.5 py-0.5 text-[11px] font-semibold text-white">
             <Icon name="star" size={11} /> Momento de la verdad
@@ -153,7 +155,7 @@ function StepMenu({ step }: { step: Step }) {
 
 /** Hueco de una etapa sin pasos: permite agregar uno o soltar un paso arrastrado. */
 export function EmptyStageHeader({ stage }: { stage: Stage }) {
-  const { project, map } = useEditor()
+  const { project, map, exporting } = useEditor()
   const addStep = useStudioStore((s) => s.addStep)
   const { setNodeRef, isOver } = useDroppable({
     id: `stage-empty:${stage.id}`,
@@ -164,9 +166,13 @@ export function EmptyStageHeader({ stage }: { stage: Stage }) {
       ref={setNodeRef}
       className={`flex items-center justify-center border-r border-b border-line bg-surface p-2 ${isOver ? 'outline-2 -outline-offset-2 outline-primary' : ''}`}
     >
-      <Button size="sm" variant="ghost" icon="plus" onClick={() => addStep(project.id, map.id, stage.id)}>
-        Agregar paso
-      </Button>
+      {exporting ? (
+        <span className="text-xs text-ink-muted italic">Sin pasos</span>
+      ) : (
+        <Button size="sm" variant="ghost" icon="plus" onClick={() => addStep(project.id, map.id, stage.id)}>
+          Agregar paso
+        </Button>
+      )}
     </div>
   )
 }

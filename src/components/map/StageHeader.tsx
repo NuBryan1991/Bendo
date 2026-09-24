@@ -7,7 +7,7 @@ import { Popover } from '../ui/Popover'
 import { useEditor } from './EditorContext'
 
 export function StageHeader({ stage, span, index }: { stage: Stage; span: number; index: number }) {
-  const { project, map } = useEditor()
+  const { project, map, exporting } = useEditor()
   const renameStage = useStudioStore((s) => s.renameStage)
   const moveStage = useStudioStore((s) => s.moveStage)
   const deleteStage = useStudioStore((s) => s.deleteStage)
@@ -20,7 +20,8 @@ export function StageHeader({ stage, span, index }: { stage: Stage; span: number
       style={{ gridColumn: `span ${span}` }}
       className="flex items-center gap-2 border-r-2 border-b border-r-line-strong border-b-line bg-ink px-3 py-2 text-white"
     >
-      <h2 className="min-w-0 flex-1 truncate text-sm font-semibold tracking-wide uppercase">{stage.name || 'Sin nombre'}</h2>
+      <h2 className={`min-w-0 flex-1 text-sm font-semibold tracking-wide uppercase ${exporting ? '' : 'truncate'}`}>{stage.name || 'Sin nombre'}</h2>
+      {!exporting && (
       <Popover
         label={`Editar etapa ${stage.name}`}
         trigger={<Icon name="edit" size={14} />}
@@ -72,6 +73,7 @@ export function StageHeader({ stage, span, index }: { stage: Stage; span: number
           </div>
         )}
       </Popover>
+      )}
     </div>
   )
 }
