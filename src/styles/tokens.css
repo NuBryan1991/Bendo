@@ -42,7 +42,4 @@
   --radius-card: 0.5rem;
   --radius-panel: 0.75rem;
 
-  /* Medidas del editor */
-  --spacing-step: 13rem;            /* ancho de cada columna de paso */
-  --spacing-lane-label: 11rem;      /* ancho de la columna de nombres de carril */
 }
