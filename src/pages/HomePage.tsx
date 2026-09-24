@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Button, IconButton } from '../components/ui/Button'
 import { TextArea, TextField } from '../components/ui/Field'
 import { formatDate } from '../lib/dates'
-import { ImportError, projectFromJSON } from '../lib/projectIO'
+import { usePageTitle } from '../lib/usePageTitle'
+import { ImportError, projectsFromJSON } from '../lib/projectIO'
 import { useStudioStore } from '../store/useStudioStore'
 
 export default function HomePage() {
@@ -14,6 +15,7 @@ export default function HomePage() {
   const addSampleProject = useStudioStore((s) => s.addSampleProject)
   const importProject = useStudioStore((s) => s.importProject)
   const navigate = useNavigate()
+  usePageTitle('Proyectos')
   const fileRef = useRef<HTMLInputElement>(null)
   const [importError, setImportError] = useState<string | null>(null)
 
@@ -22,9 +24,11 @@ export default function HomePage() {
     e.target.value = '' // permite volver a elegir el mismo archivo
     if (!file) return
     try {
-      const project = projectFromJSON(await file.text())
+      const projects = projectsFromJSON(await file.text())
       setImportError(null)
-      navigate(`/proyecto/${importProject(project)}`)
+      // Un proyecto: se abre. Varios (copia de seguridad): se quedan en la lista de Inicio.
+      const ids = projects.reverse().map((p) => importProject(p))
+      if (ids.length === 1) navigate(`/proyecto/${ids[0]}`)
     } catch (err) {
       setImportError(err instanceof ImportError ? err.message : 'No se pudo leer el archivo.')
     }
@@ -59,7 +63,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-6 py-8">
+      <main id="contenido" tabIndex={-1} className="mx-auto max-w-5xl px-6 py-8">
         {importError && (
           <p role="alert" className="mb-6 rounded-md border border-critical bg-critical-soft px-4 py-3 text-sm text-critical">
             <strong>No se pudo importar.</strong> {importError}

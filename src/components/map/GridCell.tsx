@@ -20,6 +20,8 @@ export function GridCell({ step, lane }: { step: Step; lane: Lane }) {
   return (
     <div
       ref={setNodeRef}
+      role="group"
+      aria-label={`${lane.name} · ${step.title}`}
       className={`group flex min-h-20 flex-col gap-1.5 border-r border-b border-line p-1.5 ${
         lane.group === 'backstage' ? 'bg-surface-muted' : 'bg-surface'
       } ${isOver ? 'outline-2 -outline-offset-2 outline-primary' : ''}`}
@@ -34,7 +36,7 @@ export function GridCell({ step, lane }: { step: Step; lane: Lane }) {
         type="button"
         onClick={() => setEditingCardId(addCard(project.id, map.id, step.id, lane.id) ?? null)}
         aria-label={`Agregar tarjeta en ${lane.name}, paso ${step.title}`}
-        className="mt-auto flex items-center justify-center gap-1 rounded border border-dashed border-transparent py-1 text-xs text-ink-muted opacity-60 hover:border-line-strong hover:text-ink hover:opacity-100 focus-visible:opacity-100 group-hover:opacity-100"
+        className="mt-auto flex min-h-6 items-center justify-center gap-1 rounded border border-dashed border-transparent py-1 text-xs text-ink-muted hover:border-line-strong hover:text-ink"
       >
         <Icon name="plus" size={12} /> Tarjeta
       </button>

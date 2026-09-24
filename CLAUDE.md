@@ -22,6 +22,7 @@ basado en investigación y qué es solo un supuesto**.
 - `npm run dev` — abre la app en http://localhost:5173
 - `npm run build` — verifica tipos y genera `dist/`
 - `npm run lint` — oxlint
+- `npm test` — pruebas automáticas (Vitest + jsdom): reglas del store, cálculos, JSON
 
 ## Estructura
 ```
@@ -107,7 +108,16 @@ Decisiones tomadas (confirmadas por defecto con el usuario):
 - [x] 4 Estado futuro + comparador lado a lado + conexión oportunidad → paso futuro
 - [x] 5 Exportación: JSON (exportar/importar), PNG y PDF horizontal para imprimir en gran formato
 - [x] 6 Personas: crear, editar, duplicar, eliminar, retrato/imágenes (subidas se reducen), vigencia y renovación
-- [ ] 7 Pulido de accesibilidad y pruebas
+- [x] 7 Accesibilidad (axe sin errores en todas las pantallas, teclado, anuncios en español) y pruebas
+
+## Accesibilidad (mantener)
+- Auditoría con axe-core (WCAG 2.2 AA + buenas prácticas): 0 errores en las 10 pantallas principales.
+- Enlace "Saltar al contenido" (#contenido en cada `<main>`), título de pestaña por pantalla (`usePageTitle`),
+  foco al h1 al cambiar de pantalla (`RouteFocus`).
+- Drag and drop: asa de teclado (Espacio + flechas) con anuncios en español (MapGrid `announcements`).
+- Cada celda de la grilla es un `group` con nombre "Carril · Paso".
+- Respeta `prefers-reduced-motion`. Error boundary con descarga de copia de seguridad (importable desde Inicio).
+- Controles de al menos 24 px, contraste ≥ 4.5:1 (no usar opacidad para "apagar" texto).
 
 ## Forma de trabajo
 - Un commit por fase. Si algo no está definido, **preguntar** en vez de inventar.

@@ -138,6 +138,46 @@ export function MapGrid() {
     </div>
   )
 
+  /* Anuncios en español para lectores de pantalla durante el arrastre */
+  const nameOf = (data?: DragData): string => {
+    if (data?.type === 'card') {
+      const text = map.cards.find((c) => c.id === data.cardId)?.text
+      return `la tarjeta “${text || 'vacía'}”`
+    }
+    if (data?.type === 'step') return `el paso “${map.steps.find((s) => s.id === data.stepId)?.title ?? ''}”`
+    return 'el elemento'
+  }
+  const placeOf = (data?: DragData): string => {
+    const stepTitle = (id: string) => map.steps.find((s) => s.id === id)?.title ?? ''
+    const laneName = (id: string) => map.lanes.find((l) => l.id === id)?.name ?? ''
+    switch (data?.type) {
+      case 'cell':
+        return `la celda ${laneName(data.laneId)}, paso “${stepTitle(data.stepId)}”`
+      case 'card':
+        return `la posición de ${nameOf(data)}, en ${laneName(data.laneId)}, paso “${stepTitle(data.stepId)}”`
+      case 'step':
+        return `la posición del paso “${stepTitle(data.stepId)}”`
+      case 'stage-empty':
+        return `la etapa vacía “${map.stages.find((s) => s.id === data.stageId)?.name ?? ''}”`
+      default:
+        return 'ningún lugar'
+    }
+  }
+  const announcements = {
+    onDragStart: ({ active: a }: { active: { data: { current?: unknown } } }) =>
+      `Tomaste ${nameOf(a.data.current as DragData)}. Usa las flechas para moverlo, Espacio para soltarlo o Escape para cancelar.`,
+    onDragOver: ({ active: a, over }: { active: { data: { current?: unknown } }; over: { data: { current?: unknown } } | null }) =>
+      over
+        ? `${nameOf(a.data.current as DragData)} está sobre ${placeOf(over.data.current as DragData)}.`
+        : `${nameOf(a.data.current as DragData)} no está sobre ningún lugar válido.`,
+    onDragEnd: ({ active: a, over }: { active: { data: { current?: unknown } }; over: { data: { current?: unknown } } | null }) =>
+      over
+        ? `Soltaste ${nameOf(a.data.current as DragData)} en ${placeOf(over.data.current as DragData)}.`
+        : `Soltaste ${nameOf(a.data.current as DragData)} sin moverlo.`,
+    onDragCancel: ({ active: a }: { active: { data: { current?: unknown } } }) =>
+      `Movimiento cancelado: ${nameOf(a.data.current as DragData)} volvió a su lugar.`,
+  }
+
   const activeCard = active?.type === 'card' ? map.cards.find((c) => c.id === active.cardId) : undefined
   const activeStep = active?.type === 'step' ? map.steps.find((s) => s.id === active.stepId) : undefined
 
@@ -148,7 +188,12 @@ export function MapGrid() {
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       onDragCancel={() => setActive(null)}
-      accessibility={{ screenReaderInstructions: { draggable: 'Pulsa Espacio para tomar el elemento, usa las flechas para moverlo, Espacio para soltarlo o Esc para cancelar.' } }}
+      accessibility={{
+        announcements,
+        screenReaderInstructions: {
+          draggable: 'Pulsa Espacio para tomar el elemento, usa las flechas para moverlo, Espacio para soltarlo o Escape para cancelar.',
+        },
+      }}
     >
       <div className="grid w-max border-t border-l border-line" style={{ gridTemplateColumns: template }}>
         {/* Fila 1: etapas */}

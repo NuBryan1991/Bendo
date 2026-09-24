@@ -11,6 +11,7 @@ import { Tabs } from '../components/ui/Tabs'
 import { today } from '../lib/dates'
 import { downloadFile, projectToJSON, slugify } from '../lib/projectIO'
 import { solidity } from '../lib/map'
+import { usePageTitle } from '../lib/usePageTitle'
 import { useProject } from '../lib/useProject'
 import { useStudioStore } from '../store/useStudioStore'
 import type { Project } from '../types'
@@ -23,6 +24,7 @@ export default function ProjectPage() {
   const project = useProject(projectId)
   const [params, setParams] = useSearchParams()
   const tab = (params.get('tab') as TabId) || 'mapas'
+  usePageTitle(project ? `${project.name} · ${tab[0].toUpperCase()}${tab.slice(1)}` : 'Proyecto no encontrado')
 
   if (!project) return <NotFound message="Este proyecto no existe." />
 
@@ -46,7 +48,7 @@ export default function ProjectPage() {
           />
         </div>
       </header>
-      <main className="mx-auto max-w-5xl px-6 py-8">
+      <main id="contenido" tabIndex={-1} className="mx-auto max-w-5xl px-6 py-8">
         <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
           {tab === 'mapas' && <MapsTab project={project} />}
           {tab === 'personas' && <PersonasTab project={project} />}

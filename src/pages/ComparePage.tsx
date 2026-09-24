@@ -7,6 +7,8 @@ import { Button } from '../components/ui/Button'
 import { Segmented } from '../components/ui/Field'
 import { Icon } from '../components/ui/Icon'
 import { futureMapFor, opportunityCards, orderedSteps, solidity } from '../lib/map'
+import { scrollBehavior } from '../lib/motion'
+import { usePageTitle } from '../lib/usePageTitle'
 import { useProject } from '../lib/useProject'
 import { useStudioStore } from '../store/useStudioStore'
 import type { JourneyMap, MapView, Project } from '../types'
@@ -22,6 +24,7 @@ export default function ComparePage() {
   const navigate = useNavigate()
   const leftRef = useRef<HTMLDivElement>(null)
   const rightRef = useRef<HTMLDivElement>(null)
+  usePageTitle('Comparador')
 
   if (!project) return <NotFound message="Este proyecto no existe." />
 
@@ -93,11 +96,11 @@ export default function ComparePage() {
           </Button>
         </EmptyState>
       ) : (
-        <div className="flex min-h-0 flex-1">
+        <main id="contenido" tabIndex={-1} className="flex min-h-0 flex-1">
           <MapPane project={project} map={actual} view={view} paneRef={leftRef} side="actual" />
           <ConnectionsPanel project={project} actual={actual} future={future} onShow={show} />
           <MapPane project={project} map={future} view={view} paneRef={rightRef} side="futuro" />
-        </div>
+        </main>
       )}
     </div>
   )
@@ -106,7 +109,7 @@ export default function ComparePage() {
 function flash(container: RefObject<HTMLDivElement | null>, selector: string) {
   const el = container.current?.querySelector<HTMLElement>(selector)
   if (!el) return
-  el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' })
+  el.scrollIntoView({ block: 'center', inline: 'center', behavior: scrollBehavior() })
   el.classList.remove('card-flash')
   void el.offsetWidth // reinicia la animación si ya estaba activa
   el.classList.add('card-flash')

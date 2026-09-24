@@ -63,19 +63,24 @@ const isArray = Array.isArray
  * que falten con valores por defecto. Devuelve una copia con ids nuevos, para que importar
  * dos veces el mismo archivo no choque con el proyecto original.
  */
-export function projectFromJSON(text: string): Project {
+export function projectsFromJSON(text: string): Project[] {
   let data: unknown
   try {
     data = JSON.parse(text)
   } catch {
     throw new ImportError('El archivo no es un JSON válido.')
   }
-  const raw = isObject(data) && isObject(data.project) ? data.project : data
   if (isObject(data) && typeof data.version === 'number' && data.version > FILE_VERSION) {
     throw new ImportError('El archivo viene de una versión más nueva de Journey Map Studio.')
   }
-  const project = normalizeProject(raw)
-  return cloneProject(project, project.name)
+  // Copia de seguridad completa del navegador: { state: { projects: [...] } }
+  const backup = isObject(data) && isObject(data.state) && isArray(data.state.projects) ? data.state.projects : null
+  const raws = backup ?? [isObject(data) && isObject(data.project) ? data.project : data]
+  if (raws.length === 0) throw new ImportError('La copia de seguridad no tiene proyectos.')
+  return raws.map((raw) => {
+    const project = normalizeProject(raw)
+    return cloneProject(project, project.name)
+  })
 }
 
 /** Completa y valida un proyecto (también se usa al migrar el guardado local). */

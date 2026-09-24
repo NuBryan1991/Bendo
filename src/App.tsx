@@ -1,4 +1,5 @@
 import { HashRouter, Route, Routes } from 'react-router-dom'
+import { RouteFocus, SkipLink } from './components/ui/Navigation'
 import { SaveErrorBanner } from './components/ui/SaveErrorBanner'
 import ComparePage from './pages/ComparePage'
 import HomePage from './pages/HomePage'
@@ -10,6 +11,8 @@ import ProjectPage from './pages/ProjectPage'
 export default function App() {
   return (
     <HashRouter>
+      <SkipLink />
+      <RouteFocus />
       <SaveErrorBanner />
       <Routes>
         <Route path="/" element={<HomePage />} />

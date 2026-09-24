@@ -6,6 +6,7 @@ import { Button, IconButton } from '../components/ui/Button'
 import { Segmented, TextArea, TextField } from '../components/ui/Field'
 import { Icon } from '../components/ui/Icon'
 import { addMonths, formatDate, isExpired, today } from '../lib/dates'
+import { usePageTitle } from '../lib/usePageTitle'
 import { useProject } from '../lib/useProject'
 import { STORAGE_LIMIT_BYTES, useSaveStatus } from '../store/saveStatus'
 import { useStudioStore } from '../store/useStudioStore'
@@ -21,6 +22,7 @@ export default function PersonaPage() {
   const deletePersona = useStudioStore((s) => s.deletePersona)
   const bytes = useSaveStatus((s) => s.bytes)
   const navigate = useNavigate()
+  usePageTitle(persona ? persona.name : 'Persona no encontrada')
 
   if (!project || !persona) return <NotFound message="Esta persona no existe." />
 
@@ -88,7 +90,7 @@ export default function PersonaPage() {
         )}
       </header>
 
-      <main className="mx-auto grid max-w-6xl gap-8 px-6 py-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <main id="contenido" tabIndex={-1} className="mx-auto grid max-w-6xl gap-8 px-6 py-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="flex flex-col gap-6">
           <Section title="Identidad">
             <TextField label="Nombre" value={persona.name} onChange={(e) => update({ name: e.target.value })} />
@@ -193,7 +195,7 @@ export default function PersonaPage() {
                 <ul className="mt-1 list-disc pl-5">
                   {usedIn.map((m) => (
                     <li key={m.id}>
-                      <Link to={`/proyecto/${project.id}/mapa/${m.id}`} className="text-primary underline">
+                      <Link to={`/proyecto/${project.id}/mapa/${m.id}`} className="inline-block py-1 text-primary underline">
                         {m.title}
                       </Link>
                     </li>

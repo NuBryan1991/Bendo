@@ -8,6 +8,8 @@ import { ViewToggle } from '../components/map/ViewToggle'
 import { SidePanel } from '../components/panel/SidePanel'
 import { Button } from '../components/ui/Button'
 import { futureMapFor } from '../lib/map'
+import { scrollBehavior } from '../lib/motion'
+import { usePageTitle } from '../lib/usePageTitle'
 import { useProject } from '../lib/useProject'
 import { useStudioStore } from '../store/useStudioStore'
 import NotFound from './NotFound'
@@ -19,6 +21,7 @@ export default function MapEditorPage() {
   const view = useStudioStore((s) => (mapId ? s.mapViews[mapId] : undefined)) ?? 'journey'
   const [editingCardId, setEditingCardId] = useState<string | null>(null)
   const [panelOpen, setPanelOpen] = useState(true)
+  usePageTitle(map ? map.title : 'Mapa no encontrado')
   const setMapView = useStudioStore((s) => s.setMapView)
   const createFutureMap = useStudioStore((s) => s.createFutureMap)
   const navigate = useNavigate()
@@ -34,7 +37,7 @@ export default function MapEditorPage() {
     const timer = setTimeout(() => {
       const el = document.querySelector<HTMLElement>(`[data-card-id="${targetCardId}"]`)
       if (!el) return
-      el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' })
+      el.scrollIntoView({ block: 'center', inline: 'center', behavior: scrollBehavior() })
       el.classList.add('card-flash')
       el.querySelector<HTMLElement>('button:last-of-type')?.focus({ preventScroll: true })
       setTimeout(() => el.classList.remove('card-flash'), 2600)
@@ -88,7 +91,7 @@ export default function MapEditorPage() {
           }
         />
         <div className="flex min-h-0 flex-1">
-          <main className="min-w-0 flex-1 overflow-auto p-5" aria-label="Grilla del mapa">
+          <main id="contenido" tabIndex={-1} className="min-w-0 flex-1 overflow-auto p-5" aria-label="Grilla del mapa">
             <MapGrid />
           </main>
           {panelOpen && <SidePanel onClose={() => setPanelOpen(false)} />}

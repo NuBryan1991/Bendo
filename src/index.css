@@ -11,6 +11,25 @@ body {
   @apply bg-canvas text-ink font-sans antialiased;
 }
 
+/* El título que recibe el foco al cambiar de pantalla y los <main> no necesitan contorno */
+[data-route-focus]:focus,
+main:focus {
+  outline: none;
+}
+
+/* Respeta la preferencia de "reducir movimiento" del sistema */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
 /* Foco siempre visible para navegación con teclado */
 :focus-visible {
   outline: 3px solid var(--color-focus);
